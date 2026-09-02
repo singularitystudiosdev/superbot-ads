@@ -8,6 +8,9 @@
 <link rel="stylesheet" href="assets/ad.css?v=7">
 <style>
   body { background: var(--bg); margin: 0; }
+  /* capture page must be a pristine design-space stage: site.css zooms html
+     on wide screens, which would render 100vw/100vh 1.25x past the viewport */
+  html { zoom: 1 !important; }
   .fit { position: fixed; inset: 0; display: grid; place-items: center; }
   .fit .ad-player { width: 100vw; height: 100vh; }
   .hint { position: fixed; right: 12px; bottom: 10px; font-size: 12px; color: var(--muted); opacity: 0.8; z-index: 2; }

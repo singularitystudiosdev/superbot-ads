@@ -189,18 +189,17 @@ export class SuperbotAd {
     this.cam.classList.toggle('wide', wide)
 
     // fills
-    let fableV = 0, usV = 0, fableVel = 0, usVel = 0
+    let fableV = 0, usV = 0
     for (const f of FILLS) {
       if (t >= f.t1) { if (f.who === 'fable') fableV = f.v1; else usV = f.v1 }
       else if (t > f.t0) {
         const k = f.ease((t - f.t0) / (f.t1 - f.t0))
         const v = f.v0 + (f.v1 - f.v0) * k
-        const vel = (f.v1 - f.v0) / (f.t1 - f.t0) * deriv(f.ease, (t - f.t0) / (f.t1 - f.t0), f.t1 - f.t0)
-        if (f.who === 'fable') { fableV = v; fableVel = vel } else { usV = v; usVel = vel }
+        if (f.who === 'fable') fableV = v; else usV = v
       }
     }
-    this.odos.fable.set(fableV, fableVel)
-    this.odos.us.set(usV, usVel)
+    this.odos.fable.set(fableV)
+    this.odos.us.set(usV)
     this.setBar('fable', fableV / FABLE_MAX)
     this.setBar('us', usV / FABLE_MAX)
     this.cam.querySelector('.col.us .bar').style.setProperty('--glow', usV > 0 ? 1 : 0)
@@ -220,7 +219,9 @@ export class SuperbotAd {
     }
 
     // punchline + wins card
-    this.typer.punch.run(t >= 11.55, '10.8× cheaper per task.', 26)
+    // punch rides the pull-back (10.95) and finishes just before the cut —
+    // started any later the wins card covers it before it can be read
+    this.typer.punch.run(t >= 10.95, '10.8× cheaper per task.', 28, t - 10.95)
     const winsOn = t >= CUT_T
     this.cam.classList.toggle('wins', winsOn)
     if (winsOn) {
@@ -263,10 +264,6 @@ function easeSeg(shot, t) {
   const k = Math.min(1, Math.max(0, (t - shot.t0) / (shot.t1 - shot.t0)))
   return (shot.ease || easeStd)(k)
 }
-function deriv(fn, x, span) {
-  const h = 0.004
-  return (fn(Math.min(1, x + h)) - fn(Math.max(0, x - h))) / (2 * h * span)
-}
 function fmtClock(t) {
   const m = Math.floor(t / 60), s = (t % 60).toFixed(3).padStart(6, '0')
   return `${String(m).padStart(2, '0')}:${s}`
@@ -289,14 +286,22 @@ class Odometer {
   // pos: continuous digit position (units, tenths, hundredths of v)
   set(v, vel = 0) {
     this.v = v
-    const places = [1, 10, 100]
-    const speeds = [1, 10, 100]
+    // mechanical carry: a wheel rolls only while the wheel to its right
+    // runs its final tenth into the 9→0 wrap, so every wheel rests on an
+    // exact digit ($0.92, never $1.92 frozen mid-glyph)
+    const roll = (p) => Math.max(0, p - 9)
+    const p2 = (v * 100) % 10
+    const p1 = (Math.floor((v * 10) % 10) + roll(p2)) % 10
+    const p0 = (Math.floor(v) + roll(p1)) % 10
+    const places = [p0, p1, p2]
     this.digits.forEach((d, i) => {
-      const pos = (v * places[i]) % 10
-      d.strip.style.transform = `translate3d(0, ${(-pos).toFixed(3)}em, 0)`
-      const blur = Math.min(7, Math.abs(vel) * speeds[i] * 0.9)
+      // strips are 1.05em per digit — step by 1.05em so each glyph lands
+      // dead-centre in its window (1em steps drift a digit half out by 9)
+      d.strip.style.transform = `translate3d(0, ${(-places[i] * 1.05).toFixed(3)}em, 0)`
+      // blur only the wheels that actually moved this frame
+      const blur = Math.min(7, Math.abs(places[i] - d.last) * 0.9)
       d.strip.style.filter = blur > 0.4 ? `blur(${blur.toFixed(1)}px)` : 'none'
-      d.last = pos
+      d.last = places[i]
     })
   }
 }
