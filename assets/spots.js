@@ -25,6 +25,7 @@ import { pipelineSpot } from './spots/pipeline.js'
 import { undoSpot } from './spots/undo.js'
 import { tabSpot } from './spots/tab.js'
 import { flakySpot } from './spots/flaky.js'
+import { everywhereSpot } from './spots/everywhere.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -50,4 +51,5 @@ export const SPOTS = {
   undo: undoSpot,
   tab: tabSpot,
   flaky: flakySpot,
+  everywhere: everywhereSpot,
 }

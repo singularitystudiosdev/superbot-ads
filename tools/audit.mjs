@@ -146,6 +146,8 @@ const FRAME_AUDIT = (t) => {
       '.tr-rec', '.dy-q', '.dy-ok',
       // checks: PR rows, typed card and punch; pipeline: log lines, summary
       '.ck-row', '.ck-line', '.ck-pay', '.pl-line', '.pl-sum', '.pl-pay',
+      // everywhere: tab strip, panes and the shared progress header
+      '.ev-cap', '.ev-row', '.ev-st', '.ev-tab', '.ev-run', '.ev-pct', '.ev-task', '.ev-line', '.ev-pay',
       // undo: the typed command, the client tiles and the payoff
       '.ud-term', '.ud-tile', '.ud-pay'],
   ]
