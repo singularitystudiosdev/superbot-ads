@@ -1,46 +1,51 @@
 {
   "name": "ads-frame-audit",
-  "description": "Deterministic frame-by-frame QA audit of the superbot-ads animations (this repo's tools/audit.mjs): steps the ad loop with a virtual rAF clock in headless Chromium, samples at --fps, and runs layout invariants — odometer digit alignment + rendered value vs spec at rest, text-block overlaps, typewriter completeness vs exact strings, chart lines finishing before the cut, offstage clipping during wide shots — plus screenshots at beats. Reach for it after ANY change to assets/ad.js, ad.css, index.html or player.html. Exit: returns violations[] (empty = clean); also proves fault-detection, not just green passes.",
+  "description": "Deterministic frame-by-frame QA audit of any registered superbot-ads spot (tools/audit.mjs --spot NAME): steps the ad loop with a virtual rAF clock in headless Chromium at 30fps across 16:9 / 1:1 / 9:16, and runs layout invariants — odometer alignment + value vs spec at rest, HTML text-block overlaps, SVG chart-text overlaps (label × label, label × series line, label × data point, every frame), typewriter completeness vs exact strings, dwell ≥1.5s, ≤42-char cards, offstage clipping during wide shots, clean loop seam. Reach for it after ANY change to any assets/spots/*.js, ad.js, ad.css or the audit-relevant pages. Returns violations[] (empty = clean).",
   "version": 3,
-  "status": "retired",
+  "status": "draft",
   "params": [
     {
-      "name": "ratio",
+      "name": "spot",
       "type": "string",
       "required": false,
-      "description": "Single ratio to audit: 16:9 (default), 1:1 or 9:16"
+      "description": "Which registered spot to audit (see assets/spots.js). Defaults to cheaper."
     },
     {
       "name": "allRatios",
       "type": "boolean",
       "required": false,
-      "description": "Audit all three ratios (16:9, 1:1, 9:16)"
+      "description": "Audit all three placement ratios (16:9, 1:1, 9:16)."
+    },
+    {
+      "name": "ratio",
+      "type": "string",
+      "required": false,
+      "description": "Single ratio: 16:9 (default), 1:1 or 9:16."
     },
     {
       "name": "fps",
       "type": "number",
       "required": false,
-      "description": "Sample rate; default 30"
+      "description": "Sample rate in fps; default 30."
     }
   ],
   "cases": [
     {
-      "name": "clean-16-9",
+      "name": "benchmark-all-ratios-clean",
       "args": {
-        "ratio": "16:9"
+        "allRatios": true,
+        "spot": "benchmark"
       },
-      "expect": "violations=0 samples=472 ratios=16:9 exit=0"
+      "expect": "violations=0 across 16:9+1:1+9:16 — proves the chart-text overlap invariant passes on the densest spot"
     },
     {
-      "name": "clean-all-ratios",
-      "args": {
-        "allRatios": true
-      },
-      "expect": "violations=0 samples=1416 ratios=16:9+1:1+9:16 exit=0"
+      "name": "default-spot-still-audits",
+      "args": {},
+      "expect": "runs with no arguments and returns a structured result (clean or violations, never a crash)"
     }
   ],
   "createdAt": 1788325624736,
-  "updatedAt": 1788326757407,
+  "updatedAt": 1788328903856,
   "history": [
     {
       "version": 1,
@@ -55,16 +60,14 @@
     {
       "version": 3,
       "at": 1788325753425,
-      "note": "v3: same body re-saved with corrected cases so proving actually executes (metadata-only saves skip the proof run by design).",
+      "note": "v3: same body re-saved with corrected cases so proving actually executes (metadata-only saves skip the proof run by design). Revived from retired state: added --spot passthrough (the registry outgrew the default spot), rewired cases to the benchmark spot (the only SVG-chart spot, so it exercises the new chart-text overlap invariant), and the underlying audit now fails on any chart text touching a line, dot, or other text. Un-retired: the spot param is wired, the cases run against the current registry. Case run to promote out of draft.",
       "provenAt": 1788325760033
     }
   ],
   "stats": {
-    "runs": 3,
+    "runs": 6,
     "failures": 0,
-    "lastRunAt": 1788325688967
+    "lastRunAt": 1788328924911
   },
-  "origin": "b1f16763-f568-493f-8194-7f7091e02b8f",
-  "scope": "project",
-  "dir": "/Users/adrianagne/Documents/cosmos/projects/superbot-ads/.cosmos/talents/ads-frame-audit"
+  "origin": "b1f16763-f568-493f-8194-7f7091e02b8f"
 }

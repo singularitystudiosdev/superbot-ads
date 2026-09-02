@@ -137,6 +137,57 @@ const FRAME_AUDIT = (t) => {
     }
   }
 
+  /* -- svg charts: chart text is never unreadable -- a label must clear
+     every other label, every series line and every dot by a breathing
+     margin (a line through a label reads as a strike-through) -- */
+  const svg = document.querySelector('.ad-fig svg')
+  if (svg) {
+    const chainOpacity = (el) => {
+      let o = 1
+      for (let n = el; n && n !== svg; n = n.parentElement) o *= Number(getComputedStyle(n).opacity)
+      return o
+    }
+    const texts = [...svg.querySelectorAll('text')].filter((el) => el.textContent.trim() && chainOpacity(el) > 0.05)
+    const boxes = texts.map((el) => ({ el, label: el.textContent.trim().slice(0, 24), b: r(el) }))
+    // text × text: glyph boxes must not touch (2px total tolerance)
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i].b, b = boxes[j].b
+      if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 &&
+          Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5)
+        bad('chart-text-overlap', `"${boxes[i].label}" × "${boxes[j].label}"`)
+    }
+    // series geometry, sampled once into client space
+    const drawn = [...svg.querySelectorAll('polyline,circle')]
+      .filter((el) => chainOpacity(el) > 0.05 && Number(el.style.opacity || 1) > 0.05)
+      .filter((el) => el.tagName === 'circle' || Number((el.style.strokeDashoffset || 1)) < 0.99)
+    const strokes = drawn
+      .filter((el) => el.tagName === 'polyline')
+      .flatMap((el) => {
+        const ctm = svg.getScreenCTM()
+        const L = el.getTotalLength()
+        const pts = []
+        for (let d = 0; d <= L; d += 4) {
+          const c = el.getPointAtLength(d).matrixTransform(ctm)
+          pts.push([c.x, c.y])
+        }
+        return pts
+      })
+    for (const { label, b } of boxes) {
+      const pad = 3 // breathing room around every glyph box, client px
+      const tb = { l: b.left - pad, rt: b.right + pad, t: b.top - pad, bt: b.bottom + pad }
+      for (const [x, y] of strokes)
+        if (x > tb.l && x < tb.rt && y > tb.t && y < tb.bt) { bad('chart-text-overlap', `"${label}" sits on a series line`); break }
+      for (const el of drawn) {
+        if (el.tagName !== 'circle') continue
+        const c = r(el)
+        if (Math.min(c.right, tb.rt) - Math.max(c.left, tb.l) > 0.5 && Math.min(c.bottom, tb.bt) - Math.max(c.top, tb.t) > 0.5) {
+          const dot = el.getAttribute('data-ours-dot') != null ? 'ours' : `riv ${el.getAttribute('data-riv-dot')}`
+          bad('chart-text-overlap', `"${label}" touches a data point (${dot})`); break
+        }
+      }
+    }
+  }
+
   /* -- typewriter lines complete to the exact spec string -- */
   for (const l of spec.lines) {
     const done = l.at + l.text.length / l.cps
