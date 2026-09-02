@@ -1,0 +1,70 @@
+{
+  "name": "ads-frame-audit",
+  "description": "Deterministic frame-by-frame QA audit of the superbot-ads animations (this repo's tools/audit.mjs): steps the ad loop with a virtual rAF clock in headless Chromium, samples at --fps, and runs layout invariants — odometer digit alignment + rendered value vs spec at rest, text-block overlaps, typewriter completeness vs exact strings, chart lines finishing before the cut, offstage clipping during wide shots — plus screenshots at beats. Reach for it after ANY change to assets/ad.js, ad.css, index.html or player.html. Exit: returns violations[] (empty = clean); also proves fault-detection, not just green passes.",
+  "version": 3,
+  "status": "proven",
+  "params": [
+    {
+      "name": "ratio",
+      "type": "string",
+      "required": false,
+      "description": "Single ratio to audit: 16:9 (default), 1:1 or 9:16"
+    },
+    {
+      "name": "allRatios",
+      "type": "boolean",
+      "required": false,
+      "description": "Audit all three ratios (16:9, 1:1, 9:16)"
+    },
+    {
+      "name": "fps",
+      "type": "number",
+      "required": false,
+      "description": "Sample rate; default 30"
+    }
+  ],
+  "cases": [
+    {
+      "name": "clean-16-9",
+      "args": {
+        "ratio": "16:9"
+      },
+      "expect": "violations=0 samples=472 ratios=16:9 exit=0"
+    },
+    {
+      "name": "clean-all-ratios",
+      "args": {
+        "allRatios": true
+      },
+      "expect": "violations=0 samples=1416 ratios=16:9+1:1+9:16 exit=0"
+    }
+  ],
+  "createdAt": 1788325624736,
+  "updatedAt": 1788325760033,
+  "history": [
+    {
+      "version": 1,
+      "at": 1788325624736,
+      "note": "Created. v1 proven: cases now match the returned report shape (violations/samples/exitCode). End-to-end proof this session: 1475 violations on first run, all fixed, seeded-fault re-detection confirmed, then clean across all ratios. v1 proven: cases re-run and pass against the live report shape. End-to-end proof this session: 1475 violations on first run, all fixed, seeded-fault re-detection confirmed, then clean across all ratios. v1: both case args executed live via talent_run (16:9 → 0 violations/472 samples; all ratios → 0 violations/1416 samples), then saved to crystallise. v1: cases re-supplied so the runner executes them end to end; both proofs already run live (472 and 1416 samples, zero violations). v1: expect strings switched to compact JSON substrings so the runner's containment check matches the serialized result."
+    },
+    {
+      "version": 2,
+      "at": 1788325712963,
+      "note": "v1: return now carries a one-line summary (the case matcher checks a substring of pretty-printed JSON, so multi-line key spans never match). Cases assert the summary line. v2 proven: clean-16-9 expect aligned with the summary line (ratios=16:9 segment included)."
+    },
+    {
+      "version": 3,
+      "at": 1788325753425,
+      "note": "v3: same body re-saved with corrected cases so proving actually executes (metadata-only saves skip the proof run by design).",
+      "provenAt": 1788325760033
+    }
+  ],
+  "stats": {
+    "runs": 3,
+    "failures": 0,
+    "lastRunAt": 1788325688967
+  },
+  "origin": "b1f16763-f568-493f-8194-7f7091e02b8f",
+  "scope": "project",
+  "dir": "/Users/adrianagne/Documents/cosmos/projects/superbot-ads/.cosmos/talents/ads-frame-audit"
+}

@@ -1,0 +1,13 @@
+---
+description: Auto-commit policy — commit finished work in this repo the same turn, without asking
+alwaysApply: true
+---
+
+# Auto-commit
+
+- When a task is DONE (work and its checks complete), `git commit` in the same turn. Never leave finished work uncommitted; never ask first.
+- Stage by explicit path (`git add tools/audit.mjs`), never `-A` or `.` — scratch dirs live untracked.
+- Commit only what the task touched. Unrelated dirty files stay out.
+- Message style: lowercase, terse, imperative — like `drop error trap`. No attribution trailers, no Co-Authored-By; the author is the user.
+- Never `git push` unless asked.
+- The commit replaces the "want me to commit?" question, not the chat summary — still report what changed.
