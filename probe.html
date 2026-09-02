@@ -1,0 +1,8 @@
+<!doctype html><meta charset="utf-8"><title>probe</title>
+<script>document.title = 'classic:' + (window.__classic ? 'ok' : 'fail')</script>
+<script type="module">
+  try { await import('./probe.mjs?v=1'); document.title += ' | selfmodule:ok' }
+  catch (e) { document.title += ' | selfmodule:ERR ' + e.message.slice(0, 60) }
+  try { await import('./assets/ad.js?v=probe'); document.title += ' | adjs:ok' }
+  catch (e) { document.title += ' | adjs:ERR' }
+</script>
