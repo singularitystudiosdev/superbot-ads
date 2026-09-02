@@ -12,7 +12,10 @@ import { boardSpot } from './spots/board.js'
 import { toolingSpot } from './spots/tooling.js'
 import { installSpot } from './spots/install.js'
 import { receiptSpot } from './spots/receipt.js'
+import { racedSpot } from './spots/raced.js'
 import { saidSpot } from './spots/said.js'
+import { triedSpot } from './spots/tried.js'
+import { didyoumeanSpot } from './spots/didyoumean.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -26,4 +29,7 @@ export const SPOTS = {
   install: installSpot,
   receipt: receiptSpot,
   said: saidSpot,
+  raced: racedSpot,
+  tried: triedSpot,
+  didyoumean: didyoumeanSpot,
 }
