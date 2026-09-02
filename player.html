@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>capture · superbot.gg / ads</title>
+<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/ad.css?v=1">
+<style>
+  body { background: var(--bg); margin: 0; }
+  .fit { position: fixed; inset: 0; display: grid; place-items: center; }
+  .fit .ad-player { width: 100vw; height: 100vh; }
+  .hint { position: fixed; right: 12px; bottom: 10px; font-size: 12px; color: var(--muted); opacity: 0.8; z-index: 2; }
+  .ad-shell { display: none; }
+</style>
+</head>
+<body class="capture">
+  <div class="fit"><div class="ad-player" id="ad" data-ratio="16:9"></div></div>
+  <span class="hint">space pause · r restart · h hide this</span>
+  <script type="module">
+    import { SuperbotAd } from './assets/ad.js?v=1'
+    const R = new URLSearchParams(location.search).get('ratio') || '16:9'
+    const el = document.getElementById('ad')
+    el.dataset.ratio = R
+    const ad = new SuperbotAd(el, { ratio: R })
+    // fill the viewport with the design space: override the aspect-ratio box
+    el.style.aspectRatio = 'auto'
+    const fit = () => ad.fit()
+    addEventListener('resize', fit)
+    fit()
+    addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); ad.paused ? ad.play() : ad.pause() }
+      if (e.key === 'r') ad.restart()
+      if (e.key === 'h') document.querySelector('.hint').style.display = 'none'
+    })
+  </script>
+</body>
+</html>

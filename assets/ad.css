@@ -1,0 +1,149 @@
+/* superbot.gg / ads — the player chrome and the spot itself.
+   Tokens come from the vendored site.css; everything here is scoped to
+   .ad-player so the gallery page can stay plain site markup. */
+
+/* ---- the player card (the benchmarks terminal-card shape) ---- */
+.ad-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.ad-shell-head {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--line);
+  font-size: var(--fs-xs); color: var(--muted);
+}
+.ad-shell-head .dots { display: inline-flex; gap: 6px; }
+.ad-shell-head .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.ad-shell-head .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-shell-head .clock { color: var(--fg); font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 6px; }
+.ad-shell-head .clock::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent); }
+.ad-shell-head button {
+  background: var(--raised); border: 1px solid var(--line); color: var(--muted);
+  border-radius: var(--r-md); padding: 2px 10px; font-size: var(--fs-xs); cursor: pointer;
+}
+.ad-shell-head button:hover { color: var(--fg); border-color: var(--accent); }
+.ad-shell-foot { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--line); font-size: var(--fs-xs); color: var(--muted); }
+.ad-shell-foot .cap-b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-shell-foot a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--line); }
+.ad-shell-foot a:hover { border-color: var(--accent); }
+.ad-progress { height: 2px; background: var(--line); position: relative; }
+.ad-progress i { position: absolute; inset: 0 auto 0 0; width: calc(var(--p, 0) * 100%); background: var(--accent); }
+
+.ad-viewport { position: relative; background: var(--bg); }
+.ad-player { position: relative; overflow: hidden; }
+.ad-player[data-ratio='16:9'] { aspect-ratio: 16 / 9; }
+.ad-player[data-ratio='1:1'] { aspect-ratio: 1 / 1; }
+.ad-player[data-ratio='9:16'] { aspect-ratio: 9 / 16; }
+
+/* ---- stage: fixed design space, scaled to fit ---- */
+.ad-stage { position: absolute; top: 50%; left: 50%; transform-origin: center; will-change: transform; }
+
+/* ---- camera ---- */
+.ad-cam { position: absolute; inset: 0; will-change: transform, filter; background: var(--bg); }
+
+/* ---- the figure (the benchmarks .fig, enlarged for the lens) ---- */
+.ad-fig {
+  position: absolute; margin: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.ad-player[data-ratio='16:9'] .ad-fig { left: 240px; top: 110px; width: 800px; padding: 36px 48px 40px; }
+.ad-player[data-ratio='1:1'] .ad-fig { left: 130px; top: 160px; width: 740px; padding: 36px 48px 40px; }
+.ad-player[data-ratio='9:16'] .ad-fig { left: 50px; top: 250px; width: 620px; padding: 32px 40px 36px; }
+.ad-fig .cap { margin-bottom: 28px; }
+.ad-fig .cap b { display: block; font-weight: 500; letter-spacing: -0.01em; }
+.ad-player[data-ratio='9:16'] .ad-fig .cap b { font-size: 40px; line-height: 1.15; }
+.ad-player:not([data-ratio='9:16']) .ad-fig .cap b { font-size: 30px; line-height: 1.2; }
+.ad-fig .cap span { display: block; color: var(--muted); margin-top: 6px; font-size: 17px; line-height: 1.4; }
+.ad-player[data-ratio='9:16'] .ad-fig .cap span { font-size: 19px; }
+
+.ad-fig .chart { display: grid; grid-auto-flow: column; gap: 56px; align-items: end; justify-content: center; }
+.ad-fig .col { display: grid; justify-items: center; gap: 12px; transition: filter 480ms var(--ease-std), opacity 480ms var(--ease-std); }
+.ad-fig .track {
+  width: 96px; border-radius: 6px; background: var(--raised); position: relative; overflow: hidden;
+  transform-origin: bottom; transform: scaleY(0); transition: none;
+}
+.ad-player[data-ratio='16:9'] .track, .ad-player[data-ratio='1:1'] .track { height: 300px; }
+.ad-player[data-ratio='9:16'] .track { height: 340px; }
+.ad-fig .bar {
+  position: absolute; inset: auto 0 0 0; height: var(--h, 0%); border-radius: 6px;
+  background: color-mix(in srgb, var(--fg) 25%, transparent);
+}
+.col.us .bar {
+  background: var(--fg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 0 18px color-mix(in srgb, var(--accent) calc(var(--glow, 0) * 38%), transparent),
+    0 0 42px color-mix(in srgb, var(--accent) calc(var(--glow, 0) * 16%), transparent);
+}
+.ad-fig .name { font-size: 17px; color: var(--muted); }
+.ad-cam.drawn .ad-fig .track { transform: scaleY(1); transition: transform 700ms var(--ease-out); }
+.col.us .name, .col.us .val { color: var(--fg); font-weight: 600; }
+.ad-fig .val { font-size: 22px; color: var(--muted); font-variant-numeric: tabular-nums; display: inline-flex; }
+
+/* value pop on the hit beat */
+.col.hit .val { animation: val-pop 480ms var(--ease-out); }
+@keyframes val-pop { 0% { transform: scale(1); } 30% { transform: scale(1.22); } 100% { transform: scale(1); } }
+.col.hit .track { animation: track-nudge 480ms var(--ease-out); }
+@keyframes track-nudge { 0% { transform: scaleY(1); } 30% { transform: scaleY(1.015); } 100% { transform: scaleY(1); } }
+.hit-ring {
+  position: absolute; left: 50%; bottom: 0; width: 140px; height: 140px; border-radius: 50%;
+  transform: translate(-50%, 50%) scale(0); opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, transparent 34%, var(--ring, var(--fg)) 68%, transparent 72%);
+}
+.col.hit .hit-ring { animation: ring-out 620ms var(--ease-out); }
+.col.us { --ring: var(--accent); }
+@keyframes ring-out { 0% { transform: translate(-50%, 50%) scale(0.2); opacity: 0.85; } 100% { transform: translate(-50%, 50%) scale(1.6); opacity: 0; } }
+
+/* ---- depth of field (the Gemini focus pull) ---- */
+.ad-fig .cap, .ad-punchline { transition: filter 480ms var(--ease-std), opacity 480ms var(--ease-std); }
+.focus-fable .col.us, .focus-us .col.fable { filter: blur(7px) brightness(0.55); opacity: 0.5; }
+.focus-fable .cap, .focus-us .cap { filter: blur(2.5px) brightness(0.7); opacity: 0.55; }
+.focus-fable .ad-punchline, .focus-us .ad-punchline { opacity: 0; }
+
+/* punchline under the chart (the wide-shot beat) */
+.ad-punchline {
+  margin-top: 30px; text-align: center; min-height: 28px;
+  color: var(--fg); font-size: 19px; opacity: 0; transition: opacity 400ms var(--ease-std);
+}
+.wide .ad-punchline { opacity: 1; }
+
+/* ---- the wins card ---- */
+.ad-wins {
+  position: absolute; inset: 0; display: grid; place-content: center; gap: 26px; text-align: center;
+  background: var(--bg); opacity: 0; pointer-events: none; transition: opacity 90ms linear;
+}
+.ad-cam.wins .ad-wins { opacity: 1; }
+.wins-line.big { font-size: 84px; line-height: 1.05; letter-spacing: 0.01em; font-weight: 700; color: var(--fg); text-shadow: 0 0 34px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 90px color-mix(in srgb, var(--accent) 20%, transparent); }
+.wins-line.sub { font-size: 20px; color: var(--muted); min-height: 28px; font-variant-numeric: tabular-nums; }
+.wins-line.sub .type { color: var(--fg); }
+.wins-mark { font-size: 17px; color: var(--muted); opacity: 0; transition: opacity 400ms var(--ease-out); }
+.wins-mark .gg { color: var(--accent); }
+.wins-mark.on { opacity: 1; }
+.wins-rule { width: 0; height: 2px; background: var(--accent); justify-self: center; box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent); transition: width 600ms var(--ease-out); }
+.wins-rule.on { width: 240px; }
+.caret { display: inline-block; width: 0.55em; height: 0.9em; margin-left: 2px; background: var(--accent); vertical-align: -0.08em; animation: caret 700ms steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+/* ---- atmosphere: vignette, grain, cut flash ---- */
+.ad-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 46%, transparent 55%, rgba(0,0,0,0.55) 100%); }
+.ad-grain {
+  position: absolute; inset: -60px; pointer-events: none; opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  animation: grain 900ms steps(3) infinite;
+}
+@keyframes grain { 0% { transform: translate(0,0); } 33% { transform: translate(-24px,14px); } 66% { transform: translate(16px,-20px); } 100% { transform: translate(0,0); } }
+.ad-flash { position: absolute; inset: 0; background: var(--fg); opacity: 0; pointer-events: none; }
+
+/* ---- odometer ---- */
+.od { display: inline-flex; overflow: hidden; }
+.od-d, .od-dot, .od-strip span { display: inline-block; }
+.od-dot { width: 0.34em; text-align: center; }
+.od-strip { display: inline-block; line-height: 1.05; will-change: transform, filter; }
+.od-strip span { height: 1.05em; }
+
+/* ---- capture mode (player.html): bare stage, fill the screen ---- */
+body.capture { background: var(--bg); overflow: hidden; }
+body.capture .ad-shell, body.capture .ad-shell-head, body.capture .ad-shell-foot, body.capture .ad-progress { display: none; }
+body.capture .ad-capture-wrap { position: fixed; inset: 0; }
+
+/* ---- reduced motion: park on the wide completed frame ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ad-cam { transform: none !important; filter: none !important; }
+  .ad-track, .ad-fig .track { transform: scaleY(1); }
+}
