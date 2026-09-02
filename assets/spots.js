@@ -22,6 +22,7 @@ import { pastedSpot } from './spots/pasted.js'
 import { nosignupSpot } from './spots/nosignup.js'
 import { checksSpot } from './spots/checks.js'
 import { pipelineSpot } from './spots/pipeline.js'
+import { undoSpot } from './spots/undo.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -44,4 +45,5 @@ export const SPOTS = {
   nosignup: nosignupSpot,
   checks: checksSpot,
   pipeline: pipelineSpot,
+  undo: undoSpot,
 }

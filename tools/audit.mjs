@@ -145,7 +145,9 @@ const FRAME_AUDIT = (t) => {
       '.rc-cap', '.rc-name', '.rc-token', '.rc-clock', '.rc-gap', '.rc-punch',
       '.tr-rec', '.dy-q', '.dy-ok',
       // checks: PR rows, typed card and punch; pipeline: log lines, summary
-      '.ck-row', '.ck-line', '.ck-pay', '.pl-line', '.pl-sum', '.pl-pay'],
+      '.ck-row', '.ck-line', '.ck-pay', '.pl-line', '.pl-sum', '.pl-pay',
+      // undo: the typed command, the client tiles and the payoff
+      '.ud-term', '.ud-tile', '.ud-pay'],
   ]
   for (const sel of groups) {
     const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((el) => el && vis(el))
