@@ -18,24 +18,24 @@ const ROWS = [
 ]
 const DRAW_AT = (i) => 0.3 + i * 0.06        // row slides in
 const STAMP_AT = (i) => 1.35 + i * 0.92      // ✗ lands, row lights, camera tracks
-const CHECK_AT = (i) => 6.95 + i * 0.36      // ✓ cascade down the us column
+const CHECK_AT = (i) => 6.6 + i * 0.18      // ✓ cascade — fast, punch right behind it
 const TRACK_END = STAMP_AT(4) + 0.7
 const PULL_END = TRACK_END + 0.9
-const PUNCH_AT = 9.5
-const CUT_T = 11.7
+const PUNCH_AT = 8.2
+const CUT_T = 10.6
 
 export const comparedSpot = {
-  dur: 14.7,
+  dur: 13.4,
   audit: {
     settles: [],
     // true zoom-1 rests — the tracking pass (1.35–TRACK_END) is a move
-    wideWindows: [[0.0, 1.3], [PULL_END, 11.5]],
+    wideWindows: [[0.0, 1.3], [PULL_END, 10.3]],
     cutT: CUT_T,
     lines: [
       { at: PUNCH_AT, cps: 26, text: 'five for five.', sel: '[data-type="punch"]', coverAt: CUT_T },
-      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.4 },
+      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 13.1 },
     ],
-    beats: [0.45, 1.5, 2.4, 3.3, 4.2, 5.1, 6.4, 7.4, 8.2, 9.8, 11.9, 13.4],
+    beats: [0.45, 1.5, 2.4, 3.3, 4.2, 5.1, 6.2, 6.9, 7.6, 8.5, 10.8, 12.2],
   },
   dom: () => `
     <style>

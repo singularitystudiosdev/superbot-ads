@@ -8,34 +8,34 @@
    "it asks before the bigger fixes, and just does the rest."
    All timed state is set from tick() inline — no CSS transitions. */
 
-import { easeInQuad, easeOutExpo, easeStd, Typer } from '../engine.js'
+import { easeOutExpo, easeStd, Typer } from '../engine.js'
 
 const NAGS = [
   { at: 0.9, cps: 26, text: 'continue? (y/n)' },
-  { at: 2.2, cps: 26, text: 'approve the diff? (y/n)' },
-  { at: 3.4, cps: 26, text: 'still there?' },
-  { at: 4.6, cps: 26, text: 'ok to proceed? (y/n)' },
-  { at: 5.8, cps: 26, text: 'waiting for approval…' },
+  { at: 2.0, cps: 26, text: 'approve the diff? (y/n)' },
+  { at: 3.3, cps: 26, text: 'still there?' },
+  { at: 4.5, cps: 26, text: 'ok to proceed? (y/n)' },
+  { at: 5.62, cps: 26, text: 'waiting for approval…' },
 ]
 const TASKS = 12
-const TASK_AT = (k) => 1.0 + k * 0.62
-const WIPE_AT = 8.4
-const WIPE_END = 9.0
-const PUNCH_AT = 9.4
-const CUT_T = 12.1
+const TASK_AT = (k) => 1.0 + k * 0.5
+const WIPE_AT = 8.0
+const WIPE_END = 8.5
+const PUNCH_AT = 8.85
+const CUT_T = 11.5
 
 export const handsoffSpot = {
-  dur: 15.0,
+  dur: 14.4,
   audit: {
     settles: [],
-    wideWindows: [[0.0, 1.0], [WIPE_END, 11.9]],
+    wideWindows: [[0.0, 1.0], [WIPE_END, 11.3]],
     cutT: CUT_T,
     lines: [
       ...NAGS.map((n, i) => ({ at: n.at, cps: n.cps, text: n.text, sel: `[data-type="nag${i}"]`, coverAt: WIPE_AT })),
       { at: PUNCH_AT, cps: 24, text: '0 interruptions. same work.', sel: '[data-type="punch"]', coverAt: CUT_T },
-      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.7 },
+      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.1 },
     ],
-    beats: [0.5, 1.4, 2.8, 4.2, 5.6, 7.0, 8.0, 8.6, 9.7, 10.9, 12.3, 13.8],
+    beats: [0.5, 1.4, 2.4, 3.5, 4.7, 5.9, 7.2, 8.2, 9.6, 10.4, 11.7, 13.2],
   },
   dom: () => `
     <style>
@@ -78,7 +78,7 @@ export const handsoffSpot = {
     </style>
     <div class="h-panel nags">
       <div class="h-head"><b>other agents</b>
-        <span class="h-cnt"><span class="n" data-nag-cnt></span> interruptions</span></div>
+        <span class="h-cnt"><span class="n" data-nag-cnt></span> <span data-nag-label>interruptions</span></span></div>
       <div class="h-body">
         ${NAGS.map((n, i) => `
         <p class="h-nag"><span class="prompt">agent</span><span class="type" data-type="nag${i}"></span></p>`).join('')}
@@ -111,12 +111,15 @@ export const handsoffSpot = {
         wins: new Typer(p.cam.querySelector('[data-type="wins"]')),
       },
       punch: p.cam.querySelector('.h-punch'),
+      nagLabel: p.cam.querySelector('[data-nag-label]'),
     })
     const clamp01 = (x) => Math.min(1, Math.max(0, x))
 
     // left: the nags type themselves in, the counter rolls as each starts
     NAGS.forEach((n, i) => P.typer.nags[i].run(t >= n.at, n.text, n.cps, t - n.at))
-    P.nagCnt.set(NAGS.filter((n) => t >= n.at).length)
+    const nagN = NAGS.filter((n) => t >= n.at).length
+    P.nagCnt.set(nagN)
+    if (P.nagLabel) P.nagLabel.textContent = nagN === 1 ? 'interruption' : 'interruptions'
 
     // right: completions stamp in, counter rolls up
     P.tasks.forEach((el, k) => {
@@ -125,14 +128,15 @@ export const handsoffSpot = {
       el.style.opacity = String(on ? kk : 0)
       el.style.transform = `translateY(${((1 - kk) * 6).toFixed(1)}px)`
     })
-    P.taskCnt.set(t < TASK_AT(0) ? 0 : Math.min(TASKS, Math.floor((t - TASK_AT(0)) / 0.62) + 1))
+    P.taskCnt.set(t < TASK_AT(0) ? 0 : Math.min(TASKS, Math.floor((t - TASK_AT(0)) / 0.5) + 1))
 
     // the wipe: the nag panel folds away, the winner slides left and
     // stretches to take the whole stage
-    const wk = easeInQuad(clamp01((t - WIPE_AT) / (WIPE_END - WIPE_AT)))
+    const wk = easeOutExpo(clamp01((t - WIPE_AT) / 0.45))
     P.nagPanel.style.transformOrigin = 'left center'
     P.nagPanel.style.transform = `scaleX(${(1 - wk).toFixed(3)})`
-    const swk = easeOutExpo(clamp01((t - WIPE_AT + 0.15) / 0.55))
+    P.nagPanel.style.opacity = String(Math.max(0, 1 - wk * 1.45))
+    const swk = easeOutExpo(clamp01((t - WIPE_AT - 0.18) / 0.5))
     if (P.shipsW0 === undefined) { P.shipsW0 = P.ships.offsetWidth; P.shipsX0 = P.ships.offsetLeft }
     const margin = P.nagPanel.offsetLeft
     const fullW = p.W - 2 * margin

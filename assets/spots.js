@@ -20,6 +20,8 @@ import { didyoumeanSpot } from './spots/didyoumean.js'
 import { talkSpot } from './spots/talk.js'
 import { pastedSpot } from './spots/pasted.js'
 import { nosignupSpot } from './spots/nosignup.js'
+import { checksSpot } from './spots/checks.js'
+import { pipelineSpot } from './spots/pipeline.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -40,4 +42,6 @@ export const SPOTS = {
   talk: talkSpot,
   pasted: pastedSpot,
   nosignup: nosignupSpot,
+  checks: checksSpot,
+  pipeline: pipelineSpot,
 }

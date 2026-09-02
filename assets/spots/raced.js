@@ -12,29 +12,28 @@ import { easeInOutCubic, easeOutExpo, easeStd, Typer, Odometer } from '../engine
 
 const THEM_T = 9.9   // their finish time (echoes the $9.90 benchmark)
 const US_T = 5.0     // ours
-const THEM_START = 0.5
-const US_START = 1.0
+const THEM_START = -0.6  // they were already at it when the spot opens
+const US_START = 0.8
 const US_RUN = US_T - US_START
 const CROSS_US = US_START + US_T
-const PUNCH_AT = 6.4
-const CUT_T = 12.1
+const PUNCH_AT = 6.2
+const CUT_T = 11.2
 
 export const racedSpot = {
-  dur: 15.0,
+  dur: 14.0,
   audit: {
     settles: [
-      { who: 'them', from: 0.0, to: THEM_START - 0.1, value: 0.0 },
-      { who: 'them', from: THEM_START + THEM_T + 0.4, to: 11.8, value: THEM_T },
+      { who: 'them', from: THEM_START + THEM_T + 0.4, to: 13.7, value: THEM_T },
       { who: 'us', from: 0.0, to: US_START - 0.1, value: 0.0 },
-      { who: 'us', from: CROSS_US + 0.4, to: 11.8, value: US_T },
+      { who: 'us', from: US_START + US_T + 0.4, to: 13.7, value: US_T },
     ],
-    wideWindows: [[0.0, 1.4], [CROSS_US + 0.9, 11.8]],
+    wideWindows: [[0.0, 1.2], [US_START + US_T + 0.9, 10.9]],
     cutT: CUT_T,
     lines: [
       { at: PUNCH_AT, cps: 26, text: 'finished. they’re not.', sel: '[data-type="punch"]', coverAt: CUT_T },
-      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.7 },
+      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 13.7 },
     ],
-    beats: [0.6, 1.5, 2.4, 3.4, 4.4, 5.2, 6.7, 7.8, 8.8, 9.7, 10.6, 12.3, 13.6],
+    beats: [0.5, 1.3, 2.2, 3.2, 4.2, 5.0, 5.9, 6.7, 7.6, 8.6, 9.6, 11.4, 12.7],
   },
   dom: () => `
     <style>
@@ -122,8 +121,10 @@ export const racedSpot = {
     const clamp01 = (x) => Math.min(1, Math.max(0, x))
 
     // the race: them chugs at constant pace; superbot starts a beat later
-    // and eases in — easeInOutCubic means the overtake lands mid-track
-    const pThem = clamp01((t - THEM_START) / THEM_T)
+    // and eases in — the overtake lands mid-track. their token visibly
+    // decelerates near the tape (the limp) while their clock runs true
+    const kThem = clamp01((t - THEM_START) / THEM_T)
+    const pThem = 1 - Math.pow(1 - kThem, 1.45)
     const pUs = t < US_START ? 0 : easeInOutCubic(clamp01((t - US_START) / US_RUN))
     const place = (token, track, prog) => {
       const w = track.offsetWidth - token.offsetWidth - 26
@@ -133,7 +134,7 @@ export const racedSpot = {
     place(P.tokens.us, P.tracks.us, pUs)
 
     // rolling stopwatches — each settles exactly on its finish time
-    P.odos.them.set(clamp01((t - THEM_START) / THEM_T) * THEM_T)
+    P.odos.them.set(Math.min(THEM_T, Math.max(0, t - THEM_START)))
     P.odos.us.set(t < US_START ? 0 : Math.min(US_T, t - US_START))
 
     // the live gap chip: "digging in…" while behind, then the finish-time
@@ -151,14 +152,14 @@ export const racedSpot = {
 
     // camera: wide → ride the overtake on our lane → wide for the finish
     let z = 1, px = p.W / 2, py = p.H / 2
-    if (t >= 1.4 && t < 5.3) {
-      const k = easeStd(clamp01((t - 1.4) / 0.5))
+    if (t >= 1.2 && t < 5.0) {
+      const k = easeStd(clamp01((t - 1.2) / 0.5))
       z = 1 + 0.22 * k
       const tk = P.tracks.us
-      px = tk.offsetLeft + tk.offsetWidth * (0.3 + 0.35 * clamp01((t - 1.4) / 3.4))
+      px = tk.offsetLeft + tk.offsetWidth * (0.3 + 0.35 * clamp01((t - 1.2) / 3.2))
       py = p.H / 2 + 40
-    } else if (t >= 5.3 && t < 6.1) {
-      z = 1.28 + (1 - 1.28) * easeStd(clamp01((t - 5.3) / 0.8))
+    } else if (t >= 5.0 && t < 5.8) {
+      z = 1.28 + (1 - 1.28) * easeStd(clamp01((t - 5.0) / 0.8))
     }
     p.camTo(z, px, py)
     if (t >= 2.6 && t < 2.65 && !P._kick) { P._kick = true; shake(p) }

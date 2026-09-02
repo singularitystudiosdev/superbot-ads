@@ -13,31 +13,31 @@ const LINES = [
   { text: 'duplicate tool setups', amt: 2.10 },
   { text: 'idle subscriptions', amt: 1.34 },
 ]
-const PRINT_AT = (i) => 0.9 + i * 0.95
+const PRINT_AT = (i) => 0.5 + i * 0.75
 const THEM_MAX = LINES.reduce((s, l) => s + l.amt, 0) // 7.56
-const TEAR_AT = 6.5
-const STUB_AT = 7.2
-const ZERO_AT = 7.9
-const PUNCH_AT = 8.9
-const CUT_T = 11.6
+const TEAR_AT = 4.6
+const STUB_AT = 5.2
+const ZERO_AT = 5.9
+const PUNCH_AT = 6.9
+const CUT_T = 9.8
 
 export const receiptSpot = {
-  dur: 14.6,
+  dur: 12.6,
   audit: {
     settles: [
-      { who: 'them', from: 0.0, to: 0.85, value: 0.0 },
-      { who: 'them', from: PRINT_AT(2) + 0.6, to: TEAR_AT - 0.15, value: THEM_MAX },
+      { who: 'them', from: 0.0, to: 0.45, value: 0.0 },
+      { who: 'them', from: PRINT_AT(2) + 0.5, to: TEAR_AT - 0.15, value: THEM_MAX },
       { who: 'us', from: 0.0, to: STUB_AT - 0.1, value: 0.0 },
-      { who: 'us', from: ZERO_AT + 0.5, to: 14.3, value: 0.0 },
+      { who: 'us', from: ZERO_AT + 0.5, to: 12.3, value: 0.0 },
     ],
-    wideWindows: [[0.0, 4.4], [7.0, 11.4]],
+    wideWindows: [[0.0, 4.4], [5.9, 9.5]],
     cutT: CUT_T,
     lines: [
       { at: STUB_AT, cps: 24, text: 'everything above', sel: '[data-type="stub"]', coverAt: CUT_T },
       { at: PUNCH_AT, cps: 26, text: 'one bill. already paid.', sel: '[data-type="punch"]', coverAt: CUT_T },
-      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.3 },
+      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 12.3 },
     ],
-    beats: [0.6, 1.2, 2.1, 3.0, 3.9, 4.8, 5.6, 6.7, 7.4, 8.2, 9.6, 11.9, 13.2],
+    beats: [0.5, 0.9, 1.5, 2.1, 2.7, 3.3, 4.0, 4.7, 5.4, 6.2, 7.5, 10.0, 11.3],
   },
   dom: () => `
     <style>
@@ -165,8 +165,8 @@ export const receiptSpot = {
     const sx = P.stub.offsetLeft + P.stub.offsetWidth / 2
     const sy = P.stub.offsetTop + P.stub.offsetHeight / 2
     let z = 1, px = p.W / 2, py = p.H / 2
-    if (t >= 4.6 && t < 5.9) { z = 1 + 0.16 * easeStd(clamp01((t - 4.6) / 0.7)); px = cx; py = cy + 60 }
-    else if (t >= 5.9 && t < 6.6) { z = 1.22 + (1 - 1.22) * easeStd(clamp01((t - 5.9) / 0.7)) }
+    if (t >= 2.6 && t < 3.7) { z = 1 + 0.16 * easeStd(clamp01((t - 2.6) / 0.7)); px = cx; py = cy + 60 }
+    else if (t >= 3.7 && t < 4.4) { z = 1.22 + (1 - 1.22) * easeStd(clamp01((t - 3.7) / 0.7)) }
     else if (t >= ZERO_AT && t < ZERO_AT + 0.9) {
       z = 1 + 0.1 * Math.sin(Math.PI * clamp01((t - ZERO_AT) / 0.9)); px = sx; py = sy
     }

@@ -14,27 +14,25 @@ const CLIENTS = [
   { name: 'codex', x: 880, y: 255, r: -2 },
 ]
 const LAND_AT = (i) => 0.45 + i * 0.8
-const CHIP_AT = 2.75
-const MERGE_AT = 5.6
-const MERGE_END = 6.3
-const PILL_AT = 5.95
-const SUB_AT = 6.9
-const PUNCH_AT = 9.0
-const CUT_T = 11.5
+const MERGE_AT = 4.9
+const MERGE_END = 5.6
+const PILL_AT = 5.25
+const SUB_AT = 6.2
+const PUNCH_AT = 8.0
+const CUT_T = 10.4
 
 export const mergedSpot = {
-  dur: 14.5,
+  dur: 13.2,
   audit: {
     settles: [],
-    wideWindows: [[0.0, 2.5], [MERGE_END, 11.3]],
+    wideWindows: [[0.0, 2.5], [MERGE_END, 10.2]],
     cutT: CUT_T,
     lines: [
-      { at: CHIP_AT, cps: 24, text: 'the same tool, set up 3 times', sel: '[data-type="chip"]', coverAt: MERGE_AT },
       { at: SUB_AT, cps: 22, text: '2 copies removed · backup saved', sel: '[data-type="sub"]', coverAt: CUT_T },
       { at: PUNCH_AT, cps: 26, text: 'three setups. one line.', sel: '[data-type="punch"]', coverAt: CUT_T },
-      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 14.2 },
+      { at: CUT_T + 0.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 12.9 },
     ],
-    beats: [0.55, 1.4, 2.2, 3.4, 4.4, 5.2, 6.2, 7.3, 8.2, 9.4, 11.7, 13.2],
+    beats: [0.55, 1.4, 2.2, 3.2, 4.2, 4.7, 5.4, 6.6, 7.4, 8.4, 10.6, 12.0],
   },
   dom: () => `
     <style>
@@ -49,7 +47,6 @@ export const mergedSpot = {
       .m-card b { display: block; font-weight: 500; font-size: 22px; }
       .m-card code { display: block; margin-top: 8px; font: 15px/1.5 var(--font-mono); color: var(--muted); }
       .m-card code em { font-style: normal; color: var(--accent); }
-      .m-chip { position: absolute; left: 0; right: 0; bottom: 190px; text-align: center; font: 18px/1.4 var(--font-mono); color: #d98d76; }
       .m-one {
         position: absolute; left: 50%; top: 372px; transform: translate(-50%, 0) scale(0.8); opacity: 0;
         padding: 18px 34px; border: 1px solid var(--accent); border-radius: 999px;
@@ -62,7 +59,6 @@ export const mergedSpot = {
       .m-punch { position: absolute; left: 0; right: 0; top: 545px; text-align: center; font-size: 19px; color: var(--fg); opacity: 0; }
       .ad-player[data-ratio='9:16'] .m-cap { top: 250px; }
       .ad-player[data-ratio='9:16'] .m-card { width: 300px; }
-      .ad-player[data-ratio='9:16'] .m-chip { bottom: auto; top: 810px; }
       .ad-player[data-ratio='9:16'] .m-one { top: 870px; font-size: 24px; white-space: nowrap; }
       .ad-player[data-ratio='9:16'] .m-sub { top: 960px; }
       .ad-player[data-ratio='9:16'] .m-punch { top: 1050px; }
@@ -71,7 +67,6 @@ export const mergedSpot = {
     <p class="m-cap"><b>setup, counted</b><span>three AI clients · one tool</span></p>
     ${CLIENTS.map((c, i) => `
     <div class="m-card" data-card="${i}"><b>${c.name}</b><code>superbot-mcp · configured <em>✓</em></code></div>`).join('')}
-    <p class="m-chip"><span class="type" data-type="chip"></span></p>
     <div class="m-one">one tool · every client</div>
     <p class="m-sub"><span class="type" data-type="sub"></span></p>
     <p class="m-punch"><span class="type" data-type="punch"></span></p>
@@ -82,11 +77,9 @@ export const mergedSpot = {
     const P = p.parts || (p.parts = {
       cards: [...p.cam.querySelectorAll('.m-card')],
       one: p.cam.querySelector('.m-one'),
-      chip: p.cam.querySelector('.m-chip'),
       sub: p.cam.querySelector('.m-sub'),
       punch: p.cam.querySelector('.m-punch'),
       typer: {
-        chip: new Typer(p.cam.querySelector('[data-type="chip"]')),
         sub: new Typer(p.cam.querySelector('[data-type="sub"]')),
         punch: new Typer(p.cam.querySelector('[data-type="punch"]')),
         wins: new Typer(p.cam.querySelector('[data-type="wins"]')),
@@ -111,12 +104,8 @@ export const mergedSpot = {
       card.style.opacity = String(on ? lk * (1 - k) : 0)
       card.style.transform =
         `translate(${(PX[i] - HW + mx).toFixed(1)}px, ${(PY[i] - 60 + my).toFixed(1)}px) ` +
-        `rotate(${(CLIENTS[i].r * (1 - k) + (t >= CHIP_AT && t < MERGE_AT ? jit(t, i) : 0)).toFixed(2)}deg)`
+        `rotate(${(CLIENTS[i].r * (1 - k) + (t >= 2.6 && t < MERGE_AT ? jit(t, i) : 0)).toFixed(2)}deg)`
     })
-
-    // chip types while the pile jitters
-    P.typer.chip.run(t >= CHIP_AT, 'the same tool, set up 3 times', 22, t - CHIP_AT)
-    P.chip.style.opacity = t >= CHIP_AT && t < MERGE_AT ? '1' : '0'
 
     // the mess snaps into one pill
     const pk = easeOutExpo(clamp01((t - PILL_AT) / 0.4))
