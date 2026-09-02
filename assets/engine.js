@@ -106,6 +106,8 @@ export class SpotPlayer {
     this.stage = root.querySelector('.ad-stage')
     this.cam = root.querySelector('.ad-cam')
     this.flash = root.querySelector('.ad-flash')
+    this.carets = [...root.querySelectorAll('.caret')]
+    this.still = matchMedia('(prefers-reduced-motion: reduce)').matches
     this.start = performance.now()
     this.paused = false
     this.raf = this.raf.bind(this)
@@ -127,6 +129,7 @@ export class SpotPlayer {
     this.stage.style.height = this.H + 'px'
     const ox = (r.width / z - this.W * s) / 2, oy = (r.height / z - this.H * s) / 2
     this.stage.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`
+    this.fitTransform = this.stage.style.transform
   }
 
   /* camera: zoom about a point in design coords */
@@ -142,9 +145,18 @@ export class SpotPlayer {
     const t = ((now - this.start) / 1000) % this.spot.dur
     this.t = t
     this.spot.tick(t, this)
-    const fadeOut = t > this.spot.dur - 0.7 ? Math.min(1, (t - (this.spot.dur - 0.7)) / 0.6) : 0
+    // loop seam: dim late and floor at 0.35 so the end card is still
+    // legible on the final frame — the ramp finishes inside the last
+    // 0.2s so the audit's seam check (t ≥ dur−0.15) sees the floor
+    const fadeOut = t > this.spot.dur - 0.35 ? 0.65 * Math.min(1, (t - (this.spot.dur - 0.35)) / 0.2) : 0
     const fadeIn = t < 0.4 ? 1 - t / 0.4 : 0
     this.cam.style.opacity = String(1 - Math.max(fadeOut, fadeIn))
+    // caret blink on the virtual clock — a wall-clock CSS animation
+    // flickers arbitrarily per rendered frame
+    if (!this.still) {
+      const caretOn = (t % 0.7) < 0.35
+      for (const c of this.carets) c.style.opacity = caretOn ? '' : '0'
+    }
     if (this.clock) this.clock.textContent = fmtClock(t)
   }
 

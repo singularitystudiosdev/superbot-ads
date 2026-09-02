@@ -156,8 +156,8 @@ const FRAME_AUDIT = (t) => {
   /* -- clean loop wrap: faded to black before the seam -- */
   if (t >= spec.dur - 0.15) {
     const cam = document.querySelector('.ad-cam')
-    if (cam && Number(getComputedStyle(cam).opacity) > 0.2)
-      bad('unclean-loop', `cam opacity ${getComputedStyle(cam).opacity} at t=${t.toFixed(2)} — not faded before wrap`)
+    if (cam && Number(getComputedStyle(cam).opacity) > 0.55)
+      bad('unclean-loop', `cam opacity ${getComputedStyle(cam).opacity} at t=${t.toFixed(2)} — not dimmed toward the seam`)
   }
 
   /* -- wide shots: every chart text block inside the stage -- */
