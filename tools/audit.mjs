@@ -77,7 +77,13 @@ const FRAME_AUDIT = (t) => {
   const r = (el) => el.getBoundingClientRect()
   const vis = (el) => {
     const s = getComputedStyle(el)
-    return s.display !== 'none' && s.visibility !== 'hidden' && Number(s.opacity) > 0.01 && el.textContent.trim() !== ''
+    if (s.display === 'none' || s.visibility === 'hidden' || el.textContent.trim() === '') return false
+    // an ancestor faded to zero hides the child even though the child's own
+    // computed opacity is 1 — walk the chain (receipt's paper taught us this)
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      if (Number(getComputedStyle(n).opacity) <= 0.01) return false
+    }
+    return true
   }
 
   /* -- odometers: at rest, each window shows exactly one centred digit -- */
@@ -126,18 +132,35 @@ const FRAME_AUDIT = (t) => {
       // talk spot: pane lines, the diff chip and the punchline never collide
       '.tk-line', '.tk-diff', '.tk-punch',
       // pasted: chat rows, chips and punchline; nosignup: form, pill, payoffs
-      '.pa-row', '.pa-chip', '.pa-pay', '.ns-field', '.ns-pill', '.ns-pay'],
+      '.pa-row', '.pa-chip', '.pa-pay', '.ns-field', '.ns-pill', '.ns-pay',
+      // faster/compared/merged/tooling: payoff rows, grid cells, receipts
+      '.term-pay', '.cmp-h', '.cmp-feat', '.cmp-m', '.m-sub', '.m-punch', '.y-node',
+      // handsoff/board: heads, counters, tags, stamps (rows that cross during
+      // staged rank swaps — .h-nag/.h-task/.bd-row .who — stay unregistered:
+      // the crossing is the choreography)
+      '.h-head b', '.h-cnt', '.h-punch', '.bd-row .stamp', '.bd-tag',
+      // receipt/said/raced/tried/didyoumean: bills, quotes, races, corrections
+      '.r-cap', '.r-head-row', '.r-sub', '.r-stub .head', '.r-stub .big', '.r-punch',
+      '.q-cap', '.q-they', '.q-we b', '.q-punch',
+      '.rc-cap', '.rc-name', '.rc-token', '.rc-clock', '.rc-gap', '.rc-punch',
+      '.tr-rec', '.dy-q', '.dy-ok',
+      // checks: PR rows, typed card and punch; pipeline: log lines, summary
+      '.ck-row', '.ck-line', '.ck-pay', '.pl-line', '.pl-sum', '.pl-pay'],
   ]
   for (const sel of groups) {
     const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((el) => el && vis(el))
     for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+      if (els[i].contains(els[j]) || els[j].contains(els[i])) continue
       const [a, b] = [r(els[i]), r(els[j])]
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
       const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
       if (ox <= 0 || oy <= 0) continue
       const area = ox * oy
       const smaller = Math.min(a.width * a.height, b.width * b.height)
-      if (smaller > 0 && area / smaller > 0.03)
+      // a mid-collapse element (scaleX(0) panel, wiping strip) is leaving the
+      // stage, not covering anything — a sub-pixel box makes any touch ~100%
+      if (smaller < 25) continue
+      if (area / smaller > 0.03)
         bad('text-overlap', `${els[i].className || els[i].tagName} × ${els[j].className || els[j].tagName} overlap ${(100 * area / smaller).toFixed(0)}%`)
     }
   }

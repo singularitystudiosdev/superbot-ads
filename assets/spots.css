@@ -40,7 +40,9 @@
 .y-pay { position: absolute; left: 0; right: 0; bottom: 44px; margin: 0; text-align: center; font: 700 34px/1.2 var(--font-mono); color: var(--fg); text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent); }
 
 /* other ratios: wire vertically instead */
-.ad-player[data-ratio='1:1'] .y-node, .ad-player[data-ratio='9:16'] .y-node { left: 50%; margin-left: -100px; top: 120px; }
+/* 1:1/9:16 drop the node below the l2 headline band (they share the same
+   top band on 16:9) — at top:120 it sat on the glyphs from t≈7 to the cut */
+.ad-player[data-ratio='1:1'] .y-node, .ad-player[data-ratio='9:16'] .y-node { left: 50%; margin-left: -100px; top: 170px; }
 .ad-player[data-ratio='1:1'] .y-trunk, .ad-player[data-ratio='9:16'] .y-trunk { left: 50%; top: 192px; height: 460px; }
 .ad-player[data-ratio='1:1'] .y-app, .ad-player[data-ratio='9:16'] .y-app { left: 50%; margin-left: -210px; }
 .ad-player[data-ratio='1:1'] .y-app[data-app='0'] { top: 250px; }

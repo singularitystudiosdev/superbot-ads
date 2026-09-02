@@ -85,7 +85,7 @@ export const saidSpot = {
       punchTyper: new Typer(p.cam.querySelector('[data-type="punch"]')),
       winsTyper: new Typer(p.cam.querySelector('[data-type="wins"]')),
     })
-    const RH = p.ratio === '9:16' ? 120 : 124
+    const RH = p.ratio === '9:16' ? 168 : 124
 
     // each pair: the quote fades in like a pull-quote, then the receipt
     // slides in from the right with its accent bar drawing downward
