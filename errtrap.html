@@ -4,12 +4,13 @@ window.__e = []
 window.addEventListener('error', e => __e.push('ERR ' + (e.message || e.type) + ' @ ' + String(e.filename || '').slice(-40) + ':' + e.lineno))
 window.addEventListener('unhandledrejection', e => __e.push('REJ ' + String(e.reason && e.reason.message || e.reason).slice(0, 200)))
 </script>
-<script type="module" src="./assets/ad.js?v=et"></script>
+<script type="module" src="./assets/ad.js?v=et2"></script>
 <script>
-setTimeout(() => {
-  const p = document.createElement('pre')
-  p.id = 'out'
-  p.textContent = 'TRAP|' + __e.join(' || ') + '|players:' + document.querySelectorAll('[data-ad]').length
-  document.body.prepend(p)
-}, 2500)
+function flush() {
+  let p = document.getElementById('out')
+  if (!p) { p = document.createElement('pre'); p.id = 'out'; document.body.prepend(p) }
+  p.textContent = 'TRAP|' + __e.join(' || ') + '|t:' + Math.round(performance.now())
+}
+setTimeout(flush, 400)
+setInterval(flush, 800)
 </script>
