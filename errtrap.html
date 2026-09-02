@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>errtrap</title>
+<script>
+window.__e = []
+window.addEventListener('error', e => __e.push('ERR ' + (e.message || e.type) + ' @ ' + String(e.filename || '').slice(-40) + ':' + e.lineno))
+window.addEventListener('unhandledrejection', e => __e.push('REJ ' + String(e.reason && e.reason.message || e.reason).slice(0, 200)))
+</script>
+<script type="module" src="./assets/ad.js?v=et"></script>
+<script>
+setTimeout(() => {
+  const p = document.createElement('pre')
+  p.id = 'out'
+  p.textContent = 'TRAP|' + __e.join(' || ') + '|players:' + document.querySelectorAll('[data-ad]').length
+  document.body.prepend(p)
+}, 2500)
+</script>
