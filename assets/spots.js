@@ -4,8 +4,10 @@
 
 import { cheaperSpot } from './ad.js'
 import { fasterSpot } from './spots/faster.js'
+import { benchmarkSpot } from './spots/benchmark.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
   faster: fasterSpot,
+  benchmark: benchmarkSpot,
 }
