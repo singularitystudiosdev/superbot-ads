@@ -60,12 +60,12 @@ export const mergedSpot = {
       }
       .m-sub { position: absolute; left: 0; right: 0; top: 452px; text-align: center; font: 17px/1.5 var(--font-mono); color: var(--muted); opacity: 0; }
       .m-punch { position: absolute; left: 0; right: 0; top: 545px; text-align: center; font-size: 19px; color: var(--fg); opacity: 0; }
-      .ad-player[data-ratio='9:16'] .m-cap { top: 240px; }
+      .ad-player[data-ratio='9:16'] .m-cap { top: 250px; }
       .ad-player[data-ratio='9:16'] .m-card { width: 300px; }
-      .ad-player[data-ratio='9:16'] .m-chip { bottom: auto; top: 660px; }
-      .ad-player[data-ratio='9:16'] .m-one { top: 700px; }
-      .ad-player[data-ratio='9:16'] .m-sub { top: 790px; }
-      .ad-player[data-ratio='9:16'] .m-punch { top: 880px; }
+      .ad-player[data-ratio='9:16'] .m-chip { bottom: auto; top: 810px; }
+      .ad-player[data-ratio='9:16'] .m-one { top: 870px; font-size: 24px; white-space: nowrap; }
+      .ad-player[data-ratio='9:16'] .m-sub { top: 960px; }
+      .ad-player[data-ratio='9:16'] .m-punch { top: 1050px; }
       .ad-player[data-ratio='1:1'] .m-card { width: 320px; }
     </style>
     <p class="m-cap"><b>setup, counted</b><span>three AI clients · one tool</span></p>
@@ -94,18 +94,24 @@ export const mergedSpot = {
     })
     const clamp01 = (x) => Math.min(1, Math.max(0, x))
 
-    // cards slam in one per client, each landing with a stage kick
+    // cards slam in one per client, each landing with a stage kick.
+    // cluster geometry is per ratio: the 16:9 pile centres on y=330, the
+    // 9:16 pile sits below the caption and centres on y=640
+    const port = p.H > p.W
+    const PX = port ? [200, 360, 520] : CLIENTS.map((c) => c.x)
+    const PY = port ? [560, 650, 575] : CLIENTS.map((c) => c.y)
+    const HW = port ? 150 : 170
+    const MID = port ? 640 : 330
     const k = easeOutExpo(clamp01((t - MERGE_AT) / (MERGE_END - MERGE_AT)))
     P.cards.forEach((card, i) => {
-      const c = CLIENTS[i]
       const on = t >= LAND_AT(i)
       const lk = easeOutExpo(clamp01((t - LAND_AT(i)) / 0.42))
       // pre-merge: the pile lives — a small restless jitter; post-merge: gone
-      const mx = (p.W / 2 - c.x) * k, my = (330 - c.y) * k
+      const mx = (p.W / 2 - PX[i]) * k, my = (MID - PY[i]) * k
       card.style.opacity = String(on ? lk * (1 - k) : 0)
       card.style.transform =
-        `translate(${(c.x - 170 + mx).toFixed(1)}px, ${(c.y - 60 + my).toFixed(1)}px) ` +
-        `rotate(${(c.r * (1 - k) + (t >= CHIP_AT && t < MERGE_AT ? jit(t, i) : 0)).toFixed(2)}deg)`
+        `translate(${(PX[i] - HW + mx).toFixed(1)}px, ${(PY[i] - 60 + my).toFixed(1)}px) ` +
+        `rotate(${(CLIENTS[i].r * (1 - k) + (t >= CHIP_AT && t < MERGE_AT ? jit(t, i) : 0)).toFixed(2)}deg)`
     })
 
     // chip types while the pile jitters
@@ -129,7 +135,7 @@ export const mergedSpot = {
     let z = 1, px = p.W / 2, py = p.H / 2
     if (t >= 2.6 && t < 5.2) {
       z = 1 + 0.3 * easeStd(clamp01((t - 2.6) / 1.2))
-      px = p.W / 2; py = 330
+      px = p.W / 2; py = MID
     } else if (t >= 5.2 && t < 6.1) {
       z = 1.3 + (1 - 1.3) * easeStd(clamp01((t - 5.2) / 0.9))
     }

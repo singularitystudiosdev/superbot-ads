@@ -82,6 +82,7 @@ export const comparedSpot = {
         wins: new Typer(p.cam.querySelector('[data-type="wins"]')),
       },
       punch: p.cam.querySelector('.cmp-punch'),
+      cap: p.cam.querySelector('.cap'),
     })
 
     const clamp01 = (x) => Math.min(1, Math.max(0, x))
@@ -125,6 +126,14 @@ export const comparedSpot = {
     }
     p.camTo(z, px, py)
 
+    // caption dips out while the camera tracks through it — a headline
+    // sliced mid-glyph at the top of frame reads as a render glitch
+    const capOp = t < STAMP_AT(0) ? '1'
+      : t < STAMP_AT(0) + 0.3 ? String(1 - clamp01((t - STAMP_AT(0)) / 0.3))
+      : t < TRACK_END ? '0'
+      : String(clamp01((t - TRACK_END) / 0.4))
+    P.cap.style.opacity = capOp
+
     // punchline + wins card (inline opacity — the shared class transitions
     // on wall-clock time, which the virtual clock would desync)
     P.typer.punch.run(t >= PUNCH_AT, 'five for five.', 26, t - PUNCH_AT)
@@ -133,8 +142,8 @@ export const comparedSpot = {
     p.cam.classList.toggle('wins', t >= CUT_T)
     if (t >= CUT_T) P.typer.wins.run(t >= CUT_T + 0.1, 'SUPERBOT WINS', 20, t - CUT_T - 0.1)
 
-    p.cam.classList.toggle('drawn', t >= 0.4 && t < CUT_T)
-    const inCut = Math.abs(t - CUT_T) < 0.05
+    // cut flash, held past the cut so the first glyphs land inside it
+    const inCut = Math.abs(t - CUT_T) < 0.07
     p.flash.style.opacity = inCut ? 0.9 : 0
   },
 }

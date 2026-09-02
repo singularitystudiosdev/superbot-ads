@@ -64,6 +64,9 @@ export const handsoffSpot = {
         box-shadow: 0 0 40px 6px color-mix(in srgb, var(--accent) 40%, transparent); opacity: 0; }
       .h-punch { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font-size: 19px; color: var(--fg); opacity: 0; }
       .ad-player[data-ratio='9:16'] .h-panel { top: 330px; height: 560px; width: 320px; padding: 18px 20px; }
+      .ad-player[data-ratio='9:16'] .h-head b { font-size: 17px; }
+      .ad-player[data-ratio='9:16'] .h-cnt { font-size: 12px; }
+      .ad-player[data-ratio='9:16'] .h-cnt .n { font-size: 18px; }
       .ad-player[data-ratio='9:16'] .h-panel.nags { left: 30px; }
       .ad-player[data-ratio='9:16'] .h-panel.ships { left: 370px; }
       .ad-player[data-ratio='9:16'] .h-punch { top: 950px; }
@@ -142,9 +145,12 @@ export const handsoffSpot = {
     P.typer.punch.run(t >= PUNCH_AT, '0 interruptions. same work.', 24, t - PUNCH_AT)
     P.punch.style.opacity = t >= PUNCH_AT && t < CUT_T ? '1' : '0'
 
-    // camera: wide → a lean toward the nags → back → hold on the winner
+    // camera: wide → a shallow centred push-in → back → hold on the winner.
+    // any left bias (px < 640) throws the ships panel's tasks counter off
+    // the right edge at even modest zoom, so the lean stays centred and
+    // shallow — both counters hold the frame through the whole move
     let z = 1, px = p.W / 2, py = p.H / 2
-    if (t >= 1.0 && t < 3.2) { z = 1 + 0.14 * easeStd(clamp01((t - 1.0) / 0.8)); px = 335; py = 340 }
+    if (t >= 1.0 && t < 3.2) { z = 1 + 0.08 * easeStd(clamp01((t - 1.0) / 0.8)); px = p.W / 2; py = 340 }
     else if (t >= 3.2 && t < 3.9) { z = 1.22 + (1 - 1.22) * easeStd(clamp01((t - 3.2) / 0.7)) }
     p.camTo(z, px, py)
 

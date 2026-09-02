@@ -77,12 +77,15 @@ export const receiptSpot = {
         border-top: 1px dashed rgba(35,32,25,0.4); padding-top: 10px; font-weight: 700; font-size: 26px; }
       .r-stub .big .od { font-size: inherit; }
       .r-punch { position: absolute; left: 0; right: 0; top: 560px; text-align: center; font-size: 19px; color: var(--fg); opacity: 0; }
-      .ad-player[data-ratio='9:16'] .r-cap { top: 220px; }
-      .ad-player[data-ratio='9:16'] .r-paper { left: 180px; top: 320px; }
-      .ad-player[data-ratio='9:16'] .r-stub { left: 180px; top: 360px; }
-      .ad-player[data-ratio='9:16'] .r-punch { top: 880px; }
-      .ad-player[data-ratio='1:1'] .r-paper { left: 320px; top: 210px; }
-      .ad-player[data-ratio='1:1'] .r-stub { left: 320px; top: 250px; }
+      .ad-player[data-ratio='9:16'] .r-cap { top: 340px; }
+      .ad-player[data-ratio='9:16'] .r-paper { left: 180px; top: 470px; }
+      .ad-player[data-ratio='9:16'] .r-stub { left: 180px; top: 510px; }
+      .ad-player[data-ratio='9:16'] .r-tear { left: 160px; }
+      .ad-player[data-ratio='9:16'] .r-punch { top: 1000px; }
+      .ad-player[data-ratio='1:1'] .r-cap { top: 150px; }
+      .ad-player[data-ratio='1:1'] .r-paper { left: 320px; top: 290px; }
+      .ad-player[data-ratio='1:1'] .r-stub { left: 320px; top: 330px; }
+      .ad-player[data-ratio='1:1'] .r-tear { left: 300px; }
       .ad-player[data-ratio='1:1'] .r-punch { top: 740px; }
     </style>
     <p class="r-cap"><b>your month, itemized</b><span>the other agents' way · dollars</span></p>
@@ -155,12 +158,17 @@ export const receiptSpot = {
     P.punch.style.opacity = t >= PUNCH_AT && t < CUT_T ? '1' : '0'
 
     // camera: wide → lean into the rolling total → wide for the tear →
-    // settle on the stub as it hits zero
+    // settle on the stub as it hits zero. Focal points track the paper's
+    // real position so every ratio zooms onto the card, not a 16:9 guess
+    const cx = P.paper.offsetLeft + P.paper.offsetWidth / 2
+    const cy = P.paper.offsetTop + P.paper.offsetHeight / 2
+    const sx = P.stub.offsetLeft + P.stub.offsetWidth / 2
+    const sy = P.stub.offsetTop + P.stub.offsetHeight / 2
     let z = 1, px = p.W / 2, py = p.H / 2
-    if (t >= 4.6 && t < 5.9) { z = 1 + 0.16 * easeStd(clamp01((t - 4.6) / 0.7)); px = 640; py = 400 }
+    if (t >= 4.6 && t < 5.9) { z = 1 + 0.16 * easeStd(clamp01((t - 4.6) / 0.7)); px = cx; py = cy + 60 }
     else if (t >= 5.9 && t < 6.6) { z = 1.22 + (1 - 1.22) * easeStd(clamp01((t - 5.9) / 0.7)) }
     else if (t >= ZERO_AT && t < ZERO_AT + 0.9) {
-      z = 1 + 0.1 * Math.sin(Math.PI * clamp01((t - ZERO_AT) / 0.9)); px = 640; py = 380
+      z = 1 + 0.1 * Math.sin(Math.PI * clamp01((t - ZERO_AT) / 0.9)); px = sx; py = sy
     }
     p.camTo(z, px, py)
 
