@@ -39,6 +39,7 @@ const enter = (t, at) => easeOutExpo(Math.min(1, Math.max(0, (t - at) / 0.45)))
 export const boardSpot = {
   dur: DUR,
   audit: {
+    cutT: CUT_T,
     wideWindows: [[0.0, CUT_T - 0.2]],
     lines: [
       { at: TAG_AT, cps: 34, text: TAGLINE, sel: '[data-type="tag"]', coverAt: CUT_T },
