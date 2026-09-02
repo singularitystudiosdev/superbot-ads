@@ -1,0 +1,25 @@
+---
+description: Every chat reply that delivers a superbot ad must end with direct, clickable links to view that ad (spot page, live capture, and each mp4)
+globs: assets/spots/**, videos/**, *.html
+alwaysApply: false
+---
+
+# Ad deliverables end with view links
+
+A delivered ad is not delivered until the user can click it. Any reply that
+hands over a spot (new, changed, or re-rendered) ENDS with a `Links` block:
+
+- the spot's page: `https://singularitystudiosdev.github.io/superbot-ads/<spot>.html`
+  (only if a per-spot page exists)
+- the live capture: `https://singularitystudiosdev.github.io/superbot-ads/spot.html?spot=<name>&ratio=16:9`
+- each rendered mp4: `https://singularitystudiosdev.github.io/superbot-ads/videos/<name>-<16x9|1x1|9x16>.mp4`
+
+Full URLs with scheme — bare paths and repo-relative links don't count; the
+user clicks straight into the video. Say in one word what each link is
+(`16:9 render`, `live capture`). Verify with `curl -sI` (HTTP 200) before
+presenting a link as live — a Pages deploy lags the push, so poll until it
+lands rather than linking a 404.
+
+Bad:  "the spot is committed and pushed."
+Good: "view it: [live capture](…/spot.html?spot=board&ratio=16:9) ·
+      [16:9 mp4](…/videos/board-16x9.mp4)"
