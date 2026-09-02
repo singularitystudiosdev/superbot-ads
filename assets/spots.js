@@ -24,6 +24,7 @@ import { checksSpot } from './spots/checks.js'
 import { pipelineSpot } from './spots/pipeline.js'
 import { undoSpot } from './spots/undo.js'
 import { tabSpot } from './spots/tab.js'
+import { flakySpot } from './spots/flaky.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -48,4 +49,5 @@ export const SPOTS = {
   pipeline: pipelineSpot,
   undo: undoSpot,
   tab: tabSpot,
+  flaky: flakySpot,
 }
