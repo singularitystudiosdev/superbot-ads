@@ -16,6 +16,7 @@ import { racedSpot } from './spots/raced.js'
 import { saidSpot } from './spots/said.js'
 import { triedSpot } from './spots/tried.js'
 import { didyoumeanSpot } from './spots/didyoumean.js'
+import { talkSpot } from './spots/talk.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -32,4 +33,5 @@ export const SPOTS = {
   raced: racedSpot,
   tried: triedSpot,
   didyoumean: didyoumeanSpot,
+  talk: talkSpot,
 }
