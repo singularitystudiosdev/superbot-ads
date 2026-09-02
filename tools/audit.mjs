@@ -121,7 +121,9 @@ const FRAME_AUDIT = (t) => {
     ['.cap b', '.cap span', '.col.us .val', '.col.us .name', '.col.fable .val', '.col.fable .name', '.ad-punchline'],
     ['.wins-line.big', '.wins-line.sub', '.wins-mark'],
     // series spots: typed lines, payoffs and diagram tiles never collide
-    ['.m-line', '.y-pay', '.y-tile', '.term-line', '.i-pay', '.m-cap', '.m-chip', '.m-one'],
+    ['.m-line', '.y-pay', '.y-tile', '.term-line', '.i-pay', '.m-cap', '.m-chip', '.m-one',
+      // talk spot: pane lines, the diff chip and the punchline never collide
+      '.tk-line', '.tk-diff', '.tk-punch'],
   ]
   for (const sel of groups) {
     const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((el) => el && vis(el))
