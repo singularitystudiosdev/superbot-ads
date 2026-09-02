@@ -62,7 +62,6 @@ export class SuperbotAd {
     this.root = root
     this.ratio = opts.ratio || '16:9'
     this.build()
-    this.measure()
     this.start = performance.now()
     this.paused = false
     this.punch = 0
