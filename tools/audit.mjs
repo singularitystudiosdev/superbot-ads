@@ -124,7 +124,9 @@ const FRAME_AUDIT = (t) => {
     ['.m-line', '.y-pay', '.y-tile', '.term-line', '.i-pay', '.m-cap', '.m-chip', '.m-one',
       '.tr-entry', '.dy-corr', '.dy-pay',
       // talk spot: pane lines, the diff chip and the punchline never collide
-      '.tk-line', '.tk-diff', '.tk-punch'],
+      '.tk-line', '.tk-diff', '.tk-punch',
+      // pasted: chat rows, chips and punchline; nosignup: form, pill, payoffs
+      '.pa-row', '.pa-chip', '.pa-pay', '.ns-field', '.ns-pill', '.ns-pay'],
   ]
   for (const sel of groups) {
     const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((el) => el && vis(el))

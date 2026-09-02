@@ -13,10 +13,13 @@ import { toolingSpot } from './spots/tooling.js'
 import { installSpot } from './spots/install.js'
 import { receiptSpot } from './spots/receipt.js'
 import { racedSpot } from './spots/raced.js'
+import { diffSpot } from './spots/diff.js'
 import { saidSpot } from './spots/said.js'
 import { triedSpot } from './spots/tried.js'
 import { didyoumeanSpot } from './spots/didyoumean.js'
 import { talkSpot } from './spots/talk.js'
+import { pastedSpot } from './spots/pasted.js'
+import { nosignupSpot } from './spots/nosignup.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
@@ -31,7 +34,10 @@ export const SPOTS = {
   receipt: receiptSpot,
   said: saidSpot,
   raced: racedSpot,
+  diff: diffSpot,
   tried: triedSpot,
   didyoumean: didyoumeanSpot,
   talk: talkSpot,
+  pasted: pastedSpot,
+  nosignup: nosignupSpot,
 }
