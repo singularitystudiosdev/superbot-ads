@@ -1,16 +1,25 @@
 <!doctype html><meta charset="utf-8"><title>errtrap</title>
 <script>
 window.__e = []
-window.addEventListener('error', e => __e.push('ERR ' + (e.message || e.type) + ' @ ' + String(e.filename || '').slice(-40) + ':' + e.lineno))
-window.addEventListener('unhandledrejection', e => __e.push('REJ ' + String(e.reason && e.reason.message || e.reason).slice(0, 200)))
+window.addEventListener('error', e => __e.push('ERR ' + (e.message || e.type)))
+window.addEventListener('unhandledrejection', e => __e.push('REJ ' + String(e.reason && e.reason.message || e.reason).slice(0, 150)))
 </script>
-<script type="module" src="./assets/ad.js?v=et2"></script>
+<script type="module">
+  let msg = 'start|'
+  try { const m = await import('./assets/ad.js?v=10'); msg += 'dyn:OK type=' + typeof m.SuperbotAd }
+  catch (e) { msg += 'dyn:FAIL ' + e.message.slice(0, 60) }
+  try { const m2 = await import('./assets/ad.js'); msg += ' |noq:OK' }
+  catch (e) { msg += ' |noq:FAIL' }
+  try { const m3 = await import('/superbot-ads/assets/ad.js?v=10'); msg += ' |abs:OK' }
+  catch (e) { msg += ' |abs:FAIL' }
+  window.__msg = msg
+</script>
 <script>
 function flush() {
   let p = document.getElementById('out')
   if (!p) { p = document.createElement('pre'); p.id = 'out'; document.body.prepend(p) }
-  p.textContent = 'TRAP|' + __e.join(' || ') + '|t:' + Math.round(performance.now())
+  p.textContent = 'TRAP|' + (window.__msg || 'pending') + ' || ' + __e.join(' ;; ')
 }
-setTimeout(flush, 400)
+setTimeout(flush, 500)
 setInterval(flush, 800)
 </script>
