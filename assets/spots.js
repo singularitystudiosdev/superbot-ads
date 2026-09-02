@@ -4,8 +4,20 @@
 
 import { cheaperSpot } from './ad.js'
 import { fasterSpot } from './spots/faster.js'
+import { comparedSpot } from './spots/compared.js'
+import { mergedSpot } from './spots/merged.js'
+import { handsoffSpot } from './spots/handsoff.js'
+import { boardSpot } from './spots/board.js'
+import { toolingSpot } from './spots/tooling.js'
+import { installSpot } from './spots/install.js'
 
 export const SPOTS = {
   cheaper: cheaperSpot,
   faster: fasterSpot,
+  compared: comparedSpot,
+  merged: mergedSpot,
+  handsoff: handsoffSpot,
+  board: boardSpot,
+  tooling: toolingSpot,
+  install: installSpot,
 }

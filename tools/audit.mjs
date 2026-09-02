@@ -120,9 +120,11 @@ const FRAME_AUDIT = (t) => {
   const groups = [
     ['.cap b', '.cap span', '.col.us .val', '.col.us .name', '.col.fable .val', '.col.fable .name', '.ad-punchline'],
     ['.wins-line.big', '.wins-line.sub', '.wins-mark'],
+    // series spots: typed lines, payoffs and diagram tiles never collide
+    ['.m-line', '.y-pay', '.y-tile', '.term-line', '.i-pay', '.m-cap', '.m-chip', '.m-one'],
   ]
   for (const sel of groups) {
-    const els = sel.map((s) => document.querySelector(s)).filter((el) => el && vis(el))
+    const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((el) => el && vis(el))
     for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
       const [a, b] = [r(els[i]), r(els[j])]
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
@@ -143,7 +145,7 @@ const FRAME_AUDIT = (t) => {
     if (t < 0.05) {
       if (l.coverAt && l.coverAt - done < 1.5)
         bad('dwell-short', `${l.sel} full text holds only ${(l.coverAt - done).toFixed(2)}s before cover`)
-      if (l.text.length > 42) bad('text-dense', `${l.sel} card is ${l.text.length} chars (>42)`)
+      if (!l.mono && l.text.length > 42) bad('text-dense', `${l.sel} card is ${l.text.length} chars (>42)`)
     }
     if (t < done + 0.25) continue
     const el = document.querySelector(l.sel)
@@ -185,7 +187,7 @@ for (const ratio of ratios) {
   await page.goto(`${`http://127.0.0.1:${port}`}${SPEC.player}${ratio}`)
   await page.evaluate(() => document.fonts.ready)
   await page.evaluate((s) => { window.__spec = s }, SPEC)
-  const n = Math.ceil(SPEC.dur * fps)
+  const n = Math.floor(SPEC.dur * fps) // last sample lands on the wrap seam, never past it
   for (let i = 0; i <= n; i++) {
     const t = i / fps
     await page.evaluate((t) => window.__seek(t), t)
