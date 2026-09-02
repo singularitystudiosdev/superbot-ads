@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>capture · superbot.gg / ads</title>
 <link rel="stylesheet" href="assets/site.css?v=3">
-<link rel="stylesheet" href="assets/ad.css?v=2">
+<link rel="stylesheet" href="assets/ad.css?v=3">
 <style>
   body { background: var(--bg); margin: 0; }
   .fit { position: fixed; inset: 0; display: grid; place-items: center; }
@@ -18,7 +18,7 @@
   <div class="fit"><div class="ad-player" id="ad" data-ratio="16:9"></div></div>
   <span class="hint">space pause · r restart · h hide this</span>
   <script type="module">
-    import { SuperbotAd } from './assets/ad.js?v=2'
+    import { SuperbotAd } from './assets/ad.js?v=3'
     const R = new URLSearchParams(location.search).get('ratio') || '16:9'
     const el = document.getElementById('ad')
     el.dataset.ratio = R
