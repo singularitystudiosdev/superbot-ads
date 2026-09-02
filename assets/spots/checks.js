@@ -17,7 +17,7 @@ const GREEN_AT = (i) => SPIN_AT(i) + 1.2   // row flips green
 const MERGE_AT = 8.6                       // cursor presses the merge button
 const BADGE_AT = 9.3                       // Merged badge stamps in
 const L1 = { at: 2.4, cps: 26, text: '3 failing checks. one click.', coverAt: 9.3 }
-const PUNCH = { at: 9.6, cps: 32, text: 'green on the first try. every time.' }
+const PUNCH = { at: 9.6, cps: 32, text: 'one click. all three green.' }
 const CUT_T = 12.4
 
 // cursor waypoints: [t, x, y] in design coords — enters already moving,

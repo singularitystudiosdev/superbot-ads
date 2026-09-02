@@ -12,21 +12,22 @@
 import { easeStd, easeOutExpo, Typer } from '../engine.js'
 
 const L1 = { at: 0.7, cps: 22, text: 'same task. every client.', coverAt: 9.9 }
-const PAY = { at: 9.9, cps: 28, text: 'works from any coding app.' }
+const PAY = { at: 9.9, cps: 28, text: 'never re-explain the task.' }
 const CUT_T = 12.4
-const GREEN_AT = 9.2        // all three panes flip green in the same frame
+const GREEN_AT = 9.8        // the panes flip as the bar completes — one gesture
 const BAR_DONE = 9.8        // % reads 100
 const CLICKS = [1.6, 4.8, 7.3, 9.0]   // editor, cli, ci, run-in-all
 // progress: one piecewise ramp, strictly increasing, steepens at each click
 const PROG = [[0.9, 0], [1.6, 9], [4.8, 34], [7.3, 58], [9.0, 74], [BAR_DONE, 100]]
 
 // cursor waypoints: [t, x, y] — the three tab pill centres then the run chip,
-// all in the tab row so the cursor never crosses pane text
+// all in the tab row so the cursor never crosses pane text. Enters and exits
+// top-left so the hand reads different from checks' bottom-right glide
 const WAY = [
-  [0.0, 1380, 780], [1.15, 289, 188], [4.3, 289, 188],
+  [0.0, -80, -80], [1.15, 289, 188], [4.3, 289, 188],
   [4.8, 453, 188], [6.8, 453, 188],
   [7.3, 617, 188], [8.7, 617, 188],
-  [9.0, 993, 188], [12.1, 993, 188], [12.6, 1380, 780],
+  [9.0, 993, 188], [12.1, 993, 188], [12.6, -80, -80],
 ]
 
 const PANES = [
