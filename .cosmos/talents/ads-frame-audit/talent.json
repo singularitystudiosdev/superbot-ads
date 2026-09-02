@@ -2,7 +2,7 @@
   "name": "ads-frame-audit",
   "description": "Deterministic frame-by-frame QA audit of the superbot-ads animations (this repo's tools/audit.mjs): steps the ad loop with a virtual rAF clock in headless Chromium, samples at --fps, and runs layout invariants — odometer digit alignment + rendered value vs spec at rest, text-block overlaps, typewriter completeness vs exact strings, chart lines finishing before the cut, offstage clipping during wide shots — plus screenshots at beats. Reach for it after ANY change to assets/ad.js, ad.css, index.html or player.html. Exit: returns violations[] (empty = clean); also proves fault-detection, not just green passes.",
   "version": 3,
-  "status": "proven",
+  "status": "retired",
   "params": [
     {
       "name": "ratio",
@@ -40,7 +40,7 @@
     }
   ],
   "createdAt": 1788325624736,
-  "updatedAt": 1788325760033,
+  "updatedAt": 1788326757407,
   "history": [
     {
       "version": 1,

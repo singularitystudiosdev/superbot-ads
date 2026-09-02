@@ -14,41 +14,23 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { extname, join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright'
+import { SPOTS } from '../assets/spots.js'
 
 const ROOT = dirname(fileURLToPath(import.meta.url)) + '/..'
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' }
 
-/* ---- spec: the contract the animation is supposed to honour ---- */
-const SPEC = {
-  player: '/player.html?ratio=',
-  ratios: ['16:9'],
-  fps: 30,
-  // odometer rest windows: between these t's the shown value must be exact
-  settles: [
-    { who: 'fable', from: 0.0, to: 2.75, value: 0.0 },
-    { who: 'fable', from: 5.45, to: 15.6, value: 9.9 },
-    { who: 'us', from: 0.0, to: 7.8, value: 0.0 },
-    { who: 'us', from: 10.5, to: 15.6, value: 0.92 },
-  ],
-  // wide (no zoom) shots: the whole figure must sit inside the stage
-  // true zoom-1 rests only — 6.1–7.0 is a transition (clipped by design)
-  wideWindows: [[0.0, 1.85], [11.6, 15.6]],
-  cutT: 11.8,
-  // typewriter lines: [appearT, cps, exact string, selector]
-  lines: [
-    { at: 10.95, cps: 28, text: '10.8× cheaper per task.', sel: '[data-type="punch"]', beforeCut: true },
-    { at: 11.8, cps: 55, text: 'SUPERBOT WINS', sel: '[data-type="wins"]' },
-    { at: 12.95, cps: 18, text: '$0.92 per task · fable 5.1: $9.90 — 10.8× cheaper', sel: '[data-type="sub"]' },
-  ],
-  beats: [0.5, 2.0, 3.2, 4.0, 5.4, 6.5, 8.0, 9.0, 10.45, 11.0, 11.7, 12.0, 13.2, 14.6],
-  dur: 15.7,
-}
-
-/* ---- cli ---- */
+/* ---- spec: the contract the spot module itself declares ---- */
 const argv = process.argv.slice(2)
 const arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d }
 const flag = (k) => argv.includes('--' + k)
-const ratios = flag('all-ratios') ? SPEC.ratios.concat(['1:1', '9:16']) : [arg('ratio', '16:9')]
+const spotName = arg('spot', 'cheaper')
+const SPEC = {
+  player: `/spot.html?spot=${spotName}&ratio=`,
+  fps: 30,
+  ...SPOTS[spotName].audit,
+  dur: SPOTS[spotName].dur,
+}
+const ratios = flag('all-ratios') ? ['16:9', '1:1', '9:16'] : [arg('ratio', '16:9')]
 const fps = Number(arg('fps', SPEC.fps))
 const OUT = join(ROOT, arg('out', '.tmp/audit'))
 const QUIET = flag('quiet')
@@ -102,7 +84,7 @@ const FRAME_AUDIT = (t) => {
   const inSettle = (who) => spec.settles.some((s) => s.who === who && t >= s.from && t <= s.to)
   const shown = {}
   for (const od of document.querySelectorAll('.od')) {
-    const who = od.closest('.col').classList.contains('us') ? 'us' : 'fable'
+    const who = od.getAttribute('data-od')
     if (!inSettle(who)) continue
     const wraps = [...od.querySelectorAll('.od-d')]
     const digits = wraps.map((w) => {
@@ -156,12 +138,24 @@ const FRAME_AUDIT = (t) => {
   /* -- typewriter lines complete to the exact spec string -- */
   for (const l of spec.lines) {
     const done = l.at + l.text.length / l.cps
-    if (l.beforeCut && t < 0.05 && done >= spec.cutT)
-      bad('type-after-cut', `${l.sel} finishes at ${done.toFixed(2)}, after the cut at ${spec.cutT} — never readable`)
+    // perceptual rules, checked once against the spec: a card must hold its
+    // full text ~1.5s+ before whatever covers it, and stay scannable
+    if (t < 0.05) {
+      if (l.coverAt && l.coverAt - done < 1.5)
+        bad('dwell-short', `${l.sel} full text holds only ${(l.coverAt - done).toFixed(2)}s before cover`)
+      if (l.text.length > 42) bad('text-dense', `${l.sel} card is ${l.text.length} chars (>42)`)
+    }
     if (t < done + 0.25) continue
     const el = document.querySelector(l.sel)
     if (!el || el.textContent !== l.text)
       bad('type-incomplete', `${l.sel} at t=${t.toFixed(2)}: "${el ? el.textContent : null}" ≠ "${l.text}"`)
+  }
+
+  /* -- clean loop wrap: faded to black before the seam -- */
+  if (t >= spec.dur - 0.15) {
+    const cam = document.querySelector('.ad-cam')
+    if (cam && Number(getComputedStyle(cam).opacity) > 0.2)
+      bad('unclean-loop', `cam opacity ${getComputedStyle(cam).opacity} at t=${t.toFixed(2)} — not faded before wrap`)
   }
 
   /* -- wide shots: every chart text block inside the stage -- */

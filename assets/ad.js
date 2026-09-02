@@ -1,38 +1,12 @@
-/* superbot.gg / ads — the cost-per-task spot.
+/* superbot.gg / ads — the "cheaper" spot.
    One looping, camera-driven ad rendered live in the page: wide shot of the
-   cost figure (the benchmarks page's own .fig shape), a Gemini-style focus
-   pull onto fable 5.1 as its bar fills to $9.90, back out, onto superbot as
-   it fills to $0.92, then a hard cut to the SUPERBOT WINS card.
-   Camera + odometer + typewriter are all rAF-tweened on the site's own
-   curves (--ease-std for camera, --ease-out for entrances). */
+   cost figure (the benchmarks page's own .fig shape), a focus pull onto
+   fable 5.1 as its bar fills to $9.90, back out, onto superbot as it fills
+   to $0.92, punchline, then a hard cut to the SUPERBOT WINS end card.
+   Runs on the shared rig in engine.js — this file is the spec, not the rig. */
 
-const easeStd = makeBezier(0.2, 0, 0, 1)
-// site entrance curve: cubic-bezier(0.16, 1, 0.3, 1) (expo-out)
-const easeOutExpo = makeBezier(0.16, 1, 0.3, 1)
-const easeInQuad = (t) => t * t
-const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+import { SpotPlayer, easeStd, easeOutExpo, easeInOutCubic, Typer, Odometer } from './engine.js'
 
-function makeBezier(x1, y1, x2, y2) {
-  // sampled once per (fn, t) — cheap enough at 60fps for a handful of curves
-  const NEWTON = 8, EPS = 1e-6
-  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx
-  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by
-  const sampleX = (t) => ((ax * t + bx) * t + cx) * t
-  const sampleY = (t) => ((ay * t + by) * t + cy) * t
-  const sampleDX = (t) => (3 * ax * t + 2 * bx) * t + cx
-  return (x) => {
-    let t = x
-    for (let i = 0; i < NEWTON; i++) {
-      const d = sampleX(t) - x
-      if (Math.abs(d) < EPS) break
-      t -= d / (sampleDX(t) || 1e-6)
-    }
-    return sampleY(Math.min(1, Math.max(0, t)))
-  }
-}
-
-/* the spot. DUR is the full loop; every beat below is keyed to it. */
-const DUR = 15.7
 const FABLE_MAX = 9.9, US_MAX = 0.92
 const CHEAPER = (FABLE_MAX / US_MAX).toFixed(1)
 
@@ -46,8 +20,8 @@ const SHOTS = [
   { t0: 7.0,  t1: 7.85, focus: 'us', z0: 1, z1: 1.6, ease: easeStd },
   { t0: 7.85, t1: 10.95, focus: 'us', hold: true },
   { t0: 10.95, t1: 11.55, focus: null, z0: 1.6, z1: 1, ease: easeOutExpo },
-  { t0: 11.55, t1: 11.8, focus: null, hold: true },
-  { t0: 11.8, t1: DUR, focus: null, hold: true }, // wins card lives here
+  { t0: 11.55, t1: 13.0, focus: null, hold: true }, // wide hold: punchline dwell
+  { t0: 13.0, t1: 17.2, focus: null, hold: true }, // wins card lives here
 ]
 // bar fills: [t0, t1, from, to, ease]  — odometer and bar share the tween
 const FILLS = [
@@ -55,138 +29,83 @@ const FILLS = [
   { who: 'us', t0: 7.85, t1: 10.35, v0: 0, v1: US_MAX, ease: easeOutExpo },
 ]
 const HITS = { fable: 5.3, us: 10.35 }
-const CUT_T = 11.8
+const CUT_T = 13.0
 
-export class SuperbotAd {
-  constructor(root, opts = {}) {
-    this.root = root
-    this.ratio = opts.ratio || '16:9'
-    this.build()
-    this.start = performance.now()
-    this.paused = false
-    this.punch = 0
-    this.raf = this.raf.bind(this)
-    this.rafId = requestAnimationFrame(this.raf)
-  }
+function easeSeg(shot, t) {
+  const k = Math.min(1, Math.max(0, (t - shot.t0) / (shot.t1 - shot.t0)))
+  return (shot.ease || easeStd)(k)
+}
 
-  /* ---- DOM ---- */
-  build() {
-    const [W, H] = { '16:9': [1280, 720], '1:1': [1000, 1000], '9:16': [720, 1280] }[this.ratio]
-    this.W = W; this.H = H
-    this.root.classList.add('ad-player')
-    this.root.dataset.ratio = this.ratio
-    this.root.innerHTML = `
-      <div class="ad-stage">
-        <div class="ad-cam">
-          <figure class="ad-fig">
-            <figcaption class="cap"><b>cost per task</b><span>dollars · lower is better</span></figcaption>
-            <div class="chart">
-              <div class="col us">
-                <span class="val"><span class="cur">$</span><span class="od" data-od="us"></span></span>
-                <span class="track"><span class="bar"></span><span class="hit-ring"></span></span>
-                <span class="name">superbot</span>
-              </div>
-              <div class="col fable">
-                <span class="val"><span class="cur">$</span><span class="od" data-od="fable"></span></span>
-                <span class="track"><span class="bar"></span><span class="hit-ring"></span></span>
-                <span class="name">fable 5.1</span>
-              </div>
-            </div>
-            <p class="ad-punchline"><span class="type" data-type="punch"></span></p>
-          </figure>
-          <div class="ad-wins" aria-hidden="true">
-            <p class="wins-line big"><span class="type wins-type" data-type="wins"></span><span class="caret"></span></p>
-            <p class="wins-line sub"><span class="type" data-type="sub"></span></p>
-            <p class="wins-mark">superbot<span class="gg">.gg</span></p>
-            <span class="wins-rule"></span>
-          </div>
+export const cheaperSpot = {
+  dur: 17.2,
+  // audit spec: the contract tools/audit.mjs verifies frame by frame
+  audit: {
+    settles: [
+      { who: 'fable', from: 0.0, to: 2.75, value: 0.0 },
+      { who: 'fable', from: 5.45, to: 17.1, value: 9.9 },
+      { who: 'us', from: 0.0, to: 7.8, value: 0.0 },
+      { who: 'us', from: 10.5, to: 17.1, value: 0.92 },
+    ],
+    // true zoom-1 rests only — 6.1–7.0 is a transition (clipped by design)
+    wideWindows: [[0.0, 1.85], [11.6, 12.9]],
+    cutT: 13.0,
+    lines: [
+      { at: 10.95, cps: 26, text: '10.8× cheaper.', sel: '[data-type="punch"]', coverAt: 13.0 },
+      { at: 13.1, cps: 20, text: 'SUPERBOT WINS', sel: '[data-type="wins"]', coverAt: 16.5 },
+    ],
+    beats: [0.5, 2.0, 3.2, 4.0, 5.4, 6.5, 8.0, 9.0, 10.45, 11.0, 11.7, 12.2, 13.2, 14.5, 16.8],
+  },
+  dom: () => `
+    <figure class="ad-fig">
+      <figcaption class="cap"><b>cost per task</b><span>dollars · lower is better</span></figcaption>
+      <div class="chart">
+        <div class="col us">
+          <span class="val"><span class="cur">$</span><span class="od" data-od="us"></span></span>
+          <span class="track"><span class="bar"></span><span class="hit-ring"></span></span>
+          <span class="name">superbot</span>
         </div>
-        <div class="ad-vignette"></div>
-        <div class="ad-grain"></div>
-        <div class="ad-flash"></div>
-      </div>`
+        <div class="col fable">
+          <span class="val"><span class="cur">$</span><span class="od" data-od="fable"></span></span>
+          <span class="track"><span class="bar"></span><span class="hit-ring"></span></span>
+          <span class="name">fable 5.1</span>
+        </div>
+      </div>
+      <p class="ad-punchline"><span class="type" data-type="punch"></span></p>
+    </figure>
+    <div class="ad-wins" aria-hidden="true">
+      <p class="wins-line big"><span class="type wins-type" data-type="wins"></span><span class="caret"></span></p>
+    </div>`,
+  tick(t, p) {
+    const P = p.parts || (p.parts = {
+      cols: { us: p.cam.querySelector('.col.us'), fable: p.cam.querySelector('.col.fable') },
+      odos: {
+        fable: new Odometer(p.cam.querySelector('[data-od="fable"]')),
+        us: new Odometer(p.cam.querySelector('[data-od="us"]')),
+      },
+      typer: {
+        punch: new Typer(p.cam.querySelector('[data-type="punch"]')),
+        wins: new Typer(p.cam.querySelector('[data-type="wins"]')),
+      },
+      wins: p.cam.querySelector('.ad-wins'),
+      punch: 0,
+    })
 
-    this.stage = this.root.querySelector('.ad-stage')
-    this.cam = this.root.querySelector('.ad-cam')
-    this.flash = this.root.querySelector('.ad-flash')
-    this.cols = {
-      us: this.cam.querySelector('.col.us'),
-      fable: this.cam.querySelector('.col.fable'),
-    }
-    this.trackH = { us: 0, fable: 0 }
-    this.odos = {}
-    for (const who of ['us', 'fable']) {
-      this.odos[who] = new Odometer(this.cam.querySelector(`[data-od="${who}"]`))
-      this.cols[who].classList.add(who === 'us' ? 'us' : 'them')
-    }
-    this.typer = {
-      punch: new Typer(this.cam.querySelector('[data-type="punch"]')),
-      wins: new Typer(this.cam.querySelector('[data-type="wins"]')),
-      sub: new Typer(this.cam.querySelector('[data-type="sub"]')),
-    }
-    this.wins = this.cam.querySelector('.ad-wins')
-    this.fit()
-    new ResizeObserver(() => this.fit()).observe(this.root)
-  }
-
-  fit() {
-    const r = this.root.getBoundingClientRect()
-    // the site sheet zooms html on wide screens; rects come back in visual
-    // px while transforms are local — normalise by the cumulative zoom
-    const z = r.width / (this.root.offsetWidth || r.width || 1) || 1
-    const s = Math.min(r.width / (this.W * z), r.height / (this.H * z))
-    this.scale = s
-    this.stage.style.width = this.W + 'px'
-    this.stage.style.height = this.H + 'px'
-    const ox = (r.width / z - this.W * s) / 2, oy = (r.height / z - this.H * s) / 2
-    this.stage.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`
-  }
-
-  /* centre of an element, in design coords, relative to .ad-cam */
-  centre(el) {
-    let x = 0, y = 0, n = el
-    while (n && n !== this.cam) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent }
-    return { x: x + el.offsetWidth / 2, y: y + el.offsetHeight / 2 }
-  }
-
-  /* ---- clock ---- */
-  setClock(el) { this.clock = el }
-
-  /* ---- frame ---- */
-  raf(now) {
-    this.rafId = requestAnimationFrame(this.raf)
-    if (this.paused) return
-    const t = ((now - this.start) / 1000) % DUR
-    this.t = t
-    this.tick(t, now)
-    if (this.clock) this.clock.textContent = fmtClock(t)
-  }
-
-  tick(t, now) {
     // camera
-    let shot = SHOTS.find((s) => t >= s.t0 && t < s.t1) || SHOTS[SHOTS.length - 1]
-    let z = shot.z0 ?? 1, px = this.W / 2, py = this.H / 2
-    if (shot.focus) { const c = this.centre(this.cols[shot.focus]); px = c.x; py = c.y - 14 }
-    if (!shot.hold && shot.z0 !== undefined) {
-      const k = easeSeg(shot, t)
-      z = shot.z0 + (shot.z1 - shot.z0) * k
-    } else if (shot.focus && shot.z0 === undefined) {
-      z = 1.6
-    }
+    const shot = SHOTS.find((s) => t >= s.t0 && t < s.t1) || SHOTS[SHOTS.length - 1]
+    let z = shot.z0 ?? 1, px = p.W / 2, py = p.H / 2
+    if (shot.focus) { const c = centre(P.cols[shot.focus], p.cam); px = c.x; py = c.y - 14 }
+    if (!shot.hold && shot.z0 !== undefined) z = shot.z0 + (shot.z1 - shot.z0) * easeSeg(shot, t)
+    else if (shot.focus && shot.z0 === undefined) z = 1.6
     // camera punch on hits: a short zoom impulse that springs back
-    const p = this.punch
-    if (p > 0.0005) z *= 1 + p * 0.05
-    const cx = this.W / 2, cy = this.H / 2
-    this.cam.style.transformOrigin = '0 0'
-    this.cam.style.transform = `translate(${cx - z * px}px, ${cy - z * py}px) scale(${z})`
-    this.cam.style.filter = p > 0.001 ? `blur(${p * 2.2}px)` : 'none'
-    this.punch = Math.max(0, p - p * 0.09 - 0.0006)
+    if (P.punch > 0.0005) z *= 1 + P.punch * 0.05
+    p.camTo(z, px, py)
+    p.cam.style.filter = P.punch > 0.001 ? `blur(${P.punch * 2.2}px)` : 'none'
+    P.punch = Math.max(0, P.punch - P.punch * 0.09 - 0.0006)
 
     // depth of field on the unfocused column + caption
-    this.cam.classList.toggle('focus-fable', shot.focus === 'fable')
-    this.cam.classList.toggle('focus-us', shot.focus === 'us')
-    const wide = !shot.focus
-    this.cam.classList.toggle('wide', wide)
+    p.cam.classList.toggle('focus-fable', shot.focus === 'fable')
+    p.cam.classList.toggle('focus-us', shot.focus === 'us')
+    p.cam.classList.toggle('wide', !shot.focus)
 
     // fills
     let fableV = 0, usV = 0
@@ -198,20 +117,20 @@ export class SuperbotAd {
         if (f.who === 'fable') fableV = v; else usV = v
       }
     }
-    this.odos.fable.set(fableV)
-    this.odos.us.set(usV)
-    this.setBar('fable', fableV / FABLE_MAX)
-    this.setBar('us', usV / FABLE_MAX)
-    this.cam.querySelector('.col.us .bar').style.setProperty('--glow', usV > 0 ? 1 : 0)
+    P.odos.fable.set(fableV)
+    P.odos.us.set(usV)
+    setBar(P.cols.fable, fableV / FABLE_MAX)
+    setBar(P.cols.us, usV / FABLE_MAX)
+    p.cam.querySelector('.col.us .bar').style.setProperty('--glow', usV > 0 ? 1 : 0)
 
     // hits
     for (const [who, ht] of Object.entries(HITS)) {
-      const col = this.cols[who]
+      const col = P.cols[who]
       if (t >= ht && t < ht + 0.55 && !col.dataset.hitAt) {
-        col.dataset.hitAt = String(now)
+        col.dataset.hitAt = String(performance.now())
         col.classList.add('hit')
-        this.punch = 1
-        this.shake()
+        P.punch = 1
+        shake(p)
       } else if (t < ht - 0.05) {
         delete col.dataset.hitAt
         col.classList.remove('hit')
@@ -219,105 +138,48 @@ export class SuperbotAd {
     }
 
     // punchline + wins card
-    // punch rides the pull-back (10.95) and finishes just before the cut —
-    // started any later the wins card covers it before it can be read
-    this.typer.punch.run(t >= 10.95, '10.8× cheaper per task.', 28, t - 10.95)
+    // punch rides the pull-back (10.95), finishes ~11.5s, holds ~1.5s
+    // before the cut — started any later the wins card covers it unread
+    P.typer.punch.run(t >= 10.95, `${CHEAPER}× cheaper.`, 26, t - 10.95)
     const winsOn = t >= CUT_T
-    this.cam.classList.toggle('wins', winsOn)
+    p.cam.classList.toggle('wins', winsOn)
     if (winsOn) {
       const w = t - CUT_T
-      this.typer.wins.run(w >= 0, 'SUPERBOT WINS', 55, w)
-      this.typer.sub.run(w >= 1.15, `$0.92 per task · fable 5.1: $9.90 — ${CHEAPER}× cheaper`, 18, w - 1.15)
-      this.wins.querySelector('.wins-rule').classList.toggle('on', w >= 2.1)
-      this.wins.querySelector('.wins-mark').classList.toggle('on', w >= 2.3)
+      // end card is one line, held ~3.5s: readable even on a paused frame
+      P.typer.wins.run(w >= 0.1, 'SUPERBOT WINS', 20, w - 0.1)
     }
 
-    // cut flash + loop fade
-    this.cam.classList.toggle('drawn', t >= 0.55 && t < CUT_T)
+    // cut flash + entrance draw
+    p.cam.classList.toggle('drawn', t >= 0.55 && t < CUT_T)
     const inCut = Math.abs(t - CUT_T) < 0.05
-    this.flash.style.opacity = inCut ? 0.9 : 0
-    const fade = t > DUR - 0.5 ? (t - (DUR - 0.5)) / 0.5 : 0
-    this.cam.style.opacity = String(1 - fade)
-    this.stage.style.setProperty('--shake', '0px')
-  }
-
-  setBar(who, frac) {
-    const bar = this.cols[who].querySelector('.bar')
-    bar.style.setProperty('--h', (Math.max(0, Math.min(1, frac)) * 100).toFixed(2) + '%')
-  }
-
-  shake() {
-    this.stage.animate(
-      [{ transform: this.stage.style.transform + ' translate(0,0)' },
-       { transform: this.stage.style.transform + ' translate(4px,-3px)' },
-       { transform: this.stage.style.transform + ' translate(-3px,2px)' },
-       { transform: this.stage.style.transform + ' translate(0,0)' }],
-      { duration: 240, easing: 'ease-out' })
-  }
-
-  pause() { this.paused = true; this.root.classList.add('paused') }
-  play() { this.paused = false; this.root.classList.remove('paused') }
-  restart() { this.start = performance.now(); this.paused = false; this.root.classList.remove('paused') }
+    p.flash.style.opacity = inCut ? 0.9 : 0
+  },
 }
 
-function easeSeg(shot, t) {
-  const k = Math.min(1, Math.max(0, (t - shot.t0) / (shot.t1 - shot.t0)))
-  return (shot.ease || easeStd)(k)
-}
-function fmtClock(t) {
-  const m = Math.floor(t / 60), s = (t % 60).toFixed(3).padStart(6, '0')
-  return `${String(m).padStart(2, '0')}:${s}`
+function centre(el, cam) {
+  let x = 0, y = 0, n = el
+  while (n && n !== cam) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent }
+  return { x: x + el.offsetWidth / 2, y: y + el.offsetHeight / 2 }
 }
 
-/* ---- odometer: rolling digit columns, velocity-blurred ---- */
-class Odometer {
-  constructor(el) {
-    this.el = el
-    this.el.innerHTML = `<span class="od-d" data-d="1"></span><span class="od-dot">.</span><span class="od-d" data-d="2"></span><span class="od-d" data-d="3"></span>`
-    this.digits = [...this.el.querySelectorAll('.od-d')].map((d) => {
-      const strip = document.createElement('span')
-      strip.className = 'od-strip'
-      strip.innerHTML = Array.from({ length: 20 }, (_, i) => `<span>${i % 10}</span>`).join('')
-      d.appendChild(strip)
-      return { wrap: d, strip, last: 0 }
-    })
-    this.v = 0
-  }
-  // pos: continuous digit position (units, tenths, hundredths of v)
-  set(v, vel = 0) {
-    this.v = v
-    // mechanical carry: a wheel rolls only while the wheel to its right
-    // runs its final tenth into the 9→0 wrap, so every wheel rests on an
-    // exact digit ($0.92, never $1.92 frozen mid-glyph)
-    const roll = (p) => Math.max(0, p - 9)
-    const p2 = (v * 100) % 10
-    const p1 = (Math.floor((v * 10) % 10) + roll(p2)) % 10
-    const p0 = (Math.floor(v) + roll(p1)) % 10
-    const places = [p0, p1, p2]
-    this.digits.forEach((d, i) => {
-      // strips are 1.05em per digit — step by 1.05em so each glyph lands
-      // dead-centre in its window (1em steps drift a digit half out by 9)
-      d.strip.style.transform = `translate3d(0, ${(-places[i] * 1.05).toFixed(3)}em, 0)`
-      // blur only the wheels that actually moved this frame
-      const blur = Math.min(7, Math.abs(places[i] - d.last) * 0.9)
-      d.strip.style.filter = blur > 0.4 ? `blur(${blur.toFixed(1)}px)` : 'none'
-      d.last = places[i]
-    })
-  }
+function setBar(col, frac) {
+  const bar = col.querySelector('.bar')
+  bar.style.setProperty('--h', (Math.max(0, Math.min(1, frac)) * 100).toFixed(2) + '%')
 }
 
-/* ---- typewriter ---- */
-class Typer {
-  constructor(el) {
-    this.el = el
-    this.full = ''
-    this.shown = -1
-    this.el.textContent = ''
+function shake(p) {
+  p.stage.animate(
+    [{ transform: p.stage.style.transform + ' translate(0,0)' },
+     { transform: p.stage.style.transform + ' translate(4px,-3px)' },
+     { transform: p.stage.style.transform + ' translate(-3px,2px)' },
+     { transform: p.stage.style.transform + ' translate(0,0)' }],
+    { duration: 240, easing: 'ease-out' })
+}
+
+/* page-facing player: same API the site sheet and capture page already use */
+export class SuperbotAd extends SpotPlayer {
+  constructor(root, opts = {}) {
+    super(root, cheaperSpot, opts)
   }
-  run(on, text, cps, localT = 0) {
-    if (!on) { if (this.shown !== 0) { this.el.textContent = ''; this.shown = 0; this.full = '' } return }
-    if (text !== this.full) { this.full = text; this.shown = 0 }
-    const want = Math.min(text.length, Math.floor(localT * cps))
-    if (want !== this.shown) { this.shown = want; this.el.textContent = text.slice(0, want) }
-  }
+  setClock(el) { this.clock = el }
 }

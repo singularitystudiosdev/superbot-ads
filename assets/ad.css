@@ -103,6 +103,31 @@
 }
 .wide .ad-punchline { opacity: 1; }
 
+/* ---- the terminal card ("faster" spot) ---- */
+.ad-term {
+  position: absolute; margin: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.ad-player[data-ratio='16:9'] .ad-term { left: 240px; top: 130px; width: 800px; padding: 40px 48px 44px; }
+.ad-player[data-ratio='1:1'] .ad-term { left: 130px; top: 190px; width: 740px; padding: 40px 48px 44px; }
+.ad-player[data-ratio='9:16'] .ad-term { left: 50px; top: 300px; width: 620px; padding: 36px 40px 40px; }
+.ad-term .cap { margin-bottom: 34px; }
+.ad-term .cap b { display: block; font-weight: 500; letter-spacing: -0.01em; font-size: 30px; line-height: 1.2; }
+.ad-term .cap span { display: block; color: var(--muted); margin-top: 6px; font-size: 17px; line-height: 1.4; }
+.term-line { margin: 0 0 18px; font: 24px/1.4 var(--font-mono); min-height: 34px; }
+.term-line.err { color: #d98d76; }
+.term-line.fix { color: var(--fg); }
+.term-line.fix .type::before { content: '→ '; color: var(--accent); }
+.term-pay { margin: 34px 0 0; display: flex; align-items: center; gap: 22px; opacity: 0; transform: translateY(10px); transition: opacity 380ms var(--ease-out), transform 380ms var(--ease-out); }
+.term-pay.on { opacity: 1; transform: translateY(0); }
+.pay-label { font: 20px/1.2 var(--font-mono); color: var(--muted); }
+.pay-num { display: inline-flex; align-items: flex-start; font-weight: 700; font-size: 64px; color: var(--fg); text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent); }
+.pay-num .od { font-size: inherit; }
+/* every child of the big number shares the odometer's 1.05em box so the
+   glyph baselines land on one line (flex stretch otherwise top-raises them) */
+.pay-num .od-dot, .pay-num .pay-unit { height: 1.05em; line-height: 1.05; }
+.pay-unit { color: var(--muted); font-size: 34px; margin-left: 4px; }
+
 /* ---- the wins card ---- */
 .ad-wins {
   position: absolute; inset: 0; display: grid; place-content: center; gap: 26px; text-align: center;
@@ -110,13 +135,6 @@
 }
 .ad-cam.wins .ad-wins { opacity: 1; }
 .wins-line.big { font-size: 84px; line-height: 1.05; letter-spacing: 0.01em; font-weight: 700; color: var(--fg); text-shadow: 0 0 34px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 90px color-mix(in srgb, var(--accent) 20%, transparent); }
-.wins-line.sub { font-size: 20px; color: var(--muted); min-height: 28px; font-variant-numeric: tabular-nums; }
-.wins-line.sub .type { color: var(--fg); }
-.wins-mark { font-size: 17px; color: var(--muted); opacity: 0; transition: opacity 400ms var(--ease-out); }
-.wins-mark .gg { color: var(--accent); }
-.wins-mark.on { opacity: 1; }
-.wins-rule { width: 0; height: 2px; background: var(--accent); justify-self: center; box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent); transition: width 600ms var(--ease-out); }
-.wins-rule.on { width: 240px; }
 .caret { display: inline-block; width: 0.55em; height: 0.9em; margin-left: 2px; background: var(--accent); vertical-align: -0.08em; animation: caret 700ms steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
 
