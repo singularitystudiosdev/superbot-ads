@@ -33,7 +33,7 @@
 .ad-player[data-ratio='9:16'] { aspect-ratio: 9 / 16; }
 
 /* ---- stage: fixed design space, scaled to fit ---- */
-.ad-stage { position: absolute; top: 50%; left: 50%; transform-origin: center; will-change: transform; }
+.ad-stage { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
 
 /* ---- camera ---- */
 .ad-cam { position: absolute; inset: 0; will-change: transform, filter; background: var(--bg); }
@@ -132,10 +132,10 @@
 
 /* ---- odometer ---- */
 .od { display: inline-flex; overflow: hidden; }
-.od-d, .od-dot, .od-strip span { display: inline-block; }
-.od-dot { width: 0.34em; text-align: center; }
+.od-d { display: inline-block; height: 1.05em; overflow: hidden; }
+.od-dot { display: inline-block; width: 0.34em; text-align: center; }
 .od-strip { display: inline-block; line-height: 1.05; will-change: transform, filter; }
-.od-strip span { height: 1.05em; }
+.od-strip span { display: block; height: 1.05em; text-align: center; }
 
 /* ---- capture mode (player.html): bare stage, fill the screen ---- */
 body.capture { background: var(--bg); overflow: hidden; }

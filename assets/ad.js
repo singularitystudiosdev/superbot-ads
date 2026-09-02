@@ -40,12 +40,12 @@ const CHEAPER = (FABLE_MAX / US_MAX).toFixed(1)
 // focus null = wide. zoom targets are resolved to element centres at mount.
 const SHOTS = [
   { t0: 0.0,  t1: 1.9,  focus: null },
-  { t0: 1.9,  t1: 2.8,  focus: 'fable', z0: 1, z1: 2.35, ease: easeStd },
+  { t0: 1.9,  t1: 2.8,  focus: 'fable', z0: 1, z1: 1.6, ease: easeStd },
   { t0: 2.8,  t1: 6.1,  focus: 'fable', hold: true },
-  { t0: 6.1,  t1: 7.0,  focus: null, z0: 2.35, z1: 1, ease: easeStd },
-  { t0: 7.0,  t1: 7.85, focus: 'us', z0: 1, z1: 2.35, ease: easeStd },
+  { t0: 6.1,  t1: 7.0,  focus: null, z0: 1.6, z1: 1, ease: easeStd },
+  { t0: 7.0,  t1: 7.85, focus: 'us', z0: 1, z1: 1.6, ease: easeStd },
   { t0: 7.85, t1: 10.95, focus: 'us', hold: true },
-  { t0: 10.95, t1: 11.55, focus: null, z0: 2.35, z1: 1, ease: easeOutExpo },
+  { t0: 10.95, t1: 11.55, focus: null, z0: 1.6, z1: 1, ease: easeOutExpo },
   { t0: 11.55, t1: 11.8, focus: null, hold: true },
   { t0: 11.8, t1: DUR, focus: null, hold: true }, // wins card lives here
 ]
@@ -131,11 +131,14 @@ export class SuperbotAd {
 
   fit() {
     const r = this.root.getBoundingClientRect()
-    const s = Math.min(r.width / this.W, r.height / this.H)
+    // the site sheet zooms html on wide screens; rects come back in visual
+    // px while transforms are local — normalise by the cumulative zoom
+    const z = r.width / (this.root.offsetWidth || r.width || 1) || 1
+    const s = Math.min(r.width / (this.W * z), r.height / (this.H * z))
     this.scale = s
     this.stage.style.width = this.W + 'px'
     this.stage.style.height = this.H + 'px'
-    const ox = (r.width - this.W * s) / 2, oy = (r.height - this.H * s) / 2
+    const ox = (r.width / z - this.W * s) / 2, oy = (r.height / z - this.H * s) / 2
     this.stage.style.transform = `translate(${ox}px, ${oy}px) scale(${s})`
   }
 
@@ -163,12 +166,12 @@ export class SuperbotAd {
     // camera
     let shot = SHOTS.find((s) => t >= s.t0 && t < s.t1) || SHOTS[SHOTS.length - 1]
     let z = shot.z0 ?? 1, px = this.W / 2, py = this.H / 2
-    if (shot.focus) { const c = this.centre(this.cols[shot.focus].querySelector('.track')); px = c.x; py = c.y - 10 }
+    if (shot.focus) { const c = this.centre(this.cols[shot.focus]); px = c.x; py = c.y - 14 }
     if (!shot.hold && shot.z0 !== undefined) {
       const k = easeSeg(shot, t)
       z = shot.z0 + (shot.z1 - shot.z0) * k
     } else if (shot.focus && shot.z0 === undefined) {
-      z = 2.35
+      z = 1.6
     }
     // camera punch on hits: a short zoom impulse that springs back
     const p = this.punch
