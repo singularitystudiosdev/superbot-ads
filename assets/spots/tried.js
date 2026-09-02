@@ -33,7 +33,7 @@ export const triedSpot = {
   },
   dom: () => `
     <style>
-      .tr-log { position: absolute; left: 200px; top: 150px; width: 880px; }
+      .tr-log { position: absolute; left: 200px; top: 230px; width: 880px; }
       .tr-rec { position: absolute; left: 48px; top: 44px; display: inline-flex; align-items: center; gap: 10px;
         font: 15px/1 var(--font-mono); letter-spacing: 0.14em; color: var(--muted); }
       .tr-rec i { width: 12px; height: 12px; border-radius: 50%; background: #d9564a;
@@ -42,7 +42,7 @@ export const triedSpot = {
       .tr-entry .ts { font: 17px/1.4 var(--font-mono); color: var(--muted); min-width: 56px; }
       .tr-entry .line { font: 500 30px/1.3 var(--font-mono); color: var(--fg); min-height: 40px; }
       .tr-entry.hot .line { color: var(--accent); }
-      .ad-player[data-ratio='1:1'] .tr-log { left: 120px; top: 200px; width: 760px; }
+      .ad-player[data-ratio='1:1'] .tr-log { left: 120px; top: 260px; width: 760px; }
       .ad-player[data-ratio='1:1'] .tr-entry .line { font-size: 27px; }
       .ad-player[data-ratio='9:16'] .tr-log { left: 56px; top: 420px; width: 608px; }
       .ad-player[data-ratio='9:16'] .tr-entry { margin-bottom: 52px; }

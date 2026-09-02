@@ -49,7 +49,7 @@ export const didyoumeanSpot = {
       .dy-q .caret { margin-left: 3px; }
       .dy-ok { font: 700 26px/1 var(--font-mono); color: var(--bg); background: var(--accent); border-radius: 8px;
         padding: 5px 12px; margin-left: auto; opacity: 0; }
-      .dy-strike { position: absolute; left: 92px; top: 50%; width: 300px; height: 3px; background: #d9564a;
+      .dy-strike { position: absolute; left: 74px; top: 50%; width: 228px; height: 3px; background: #d9564a;
         transform-origin: 0 50%; transform: scaleX(var(--w, 0)); border-radius: 2px; }
       .dy-corrs { position: absolute; left: 320px; top: 356px; }
       .dy-corr { display: flex; align-items: baseline; gap: 12px; margin: 0 0 22px; font: 24px/1.3 var(--font-mono);
