@@ -58,9 +58,12 @@ export const fasterSpot = {
     P.typer.err.run(t >= ERR.at, ERR.text, ERR.cps, t - ERR.at)
     P.typer.fix.run(t >= FIX.at, FIX.text, FIX.cps, t - FIX.at)
 
-    // stopwatch payoff: roll up fast, settle exactly on 0.40
+    // stopwatch payoff: roll up fast, settle exactly on 0.40; the row
+    // tweens inline (the old .on class ran on wall-clock time)
     const on = t >= PAY_AT
-    P.pay.classList.toggle('on', on)
+    const kk = on ? easeStd(Math.min(1, (t - PAY_AT) / 0.38)) : 0
+    P.pay.style.opacity = String(kk)
+    P.pay.style.transform = `translateY(${((1 - kk) * 10).toFixed(2)}px)`
     const v = on ? 0.4 * easeOutExpo(Math.min(1, (t - PAY_AT) / 0.5)) : 0
     P.od.set(v)
 

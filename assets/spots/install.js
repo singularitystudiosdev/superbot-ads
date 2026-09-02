@@ -44,6 +44,7 @@ export const installSpot = {
         wins: new Typer(p.cam.querySelector('[data-type="wins"]')),
       },
       pay: p.cam.querySelector('.i-pay'),
+      fixLine: p.cam.querySelector('.term-line.fix'),
     })
 
     // push on the payoff, hold the rest wide
@@ -53,7 +54,12 @@ export const installSpot = {
     P.typer.cmd.run(t >= CMD.at, CMD.text, CMD.cps, t - CMD.at)
     P.typer.l2.run(t >= L2.at, L2.text, L2.cps, t - L2.at)
     P.typer.pay.run(t >= PAY.at, PAY.text, PAY.cps, t - PAY.at)
-    P.pay.classList.toggle('on', t >= PAY.at)
+    // the → prefix only exists while its line is typing (a dangling arrow
+    // floated above the trunk for ~6s before)
+    P.fixLine.classList.toggle('live', t >= L2.at)
+    const kk = t >= PAY.at ? easeStd(Math.min(1, (t - PAY.at) / 0.38)) : 0
+    P.pay.style.opacity = String(kk)
+    P.pay.style.transform = `translateY(${((1 - kk) * 10).toFixed(2)}px)`
 
     p.cam.classList.toggle('wins', t >= CUT_T)
     if (t >= CUT_T) P.typer.wins.run(t >= CUT_T + 0.1, 'SUPERBOT WINS', 20, t - CUT_T - 0.1)

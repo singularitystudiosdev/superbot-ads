@@ -49,6 +49,7 @@ export const toolingSpot = {
       },
       apps: [...p.cam.querySelectorAll('.y-app')],
       trunk: p.cam.querySelector('.y-trunk'),
+      l2line: p.cam.querySelector('.m-line.l2'),
     })
 
     // trunk grows, stubs fire staggered, tiles light as their wire lands
@@ -66,6 +67,8 @@ export const toolingSpot = {
 
     P.typer.l1.run(t >= L1.at, L1.text, L1.cps, t - L1.at)
     P.typer.l2.run(t >= L2.at, L2.text, L2.cps, t - L2.at)
+    // the → prefix only exists while l2 is typing (it floated alone for ~6s)
+    P.l2line.classList.toggle('live', t >= L2.at)
     P.typer.pay.run(t >= PAY.at, PAY.text, PAY.cps, t - PAY.at)
 
     p.cam.classList.toggle('wins', t >= CUT_T)

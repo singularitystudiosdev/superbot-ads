@@ -30,6 +30,9 @@ const FILLS = [
 ]
 const HITS = { fable: 5.3, us: 10.35 }
 const CUT_T = 13.0
+// focus state changes (shot cuts that move the lens): [at, focus]
+const FOCUS_CHANGES = [[1.9, 'fable'], [6.1, null], [7.0, 'us'], [10.95, null]]
+const clamp01 = (x) => Math.min(1, Math.max(0, x))
 
 function easeSeg(shot, t) {
   const k = Math.min(1, Math.max(0, (t - shot.t0) / (shot.t1 - shot.t0)))
@@ -78,6 +81,20 @@ export const cheaperSpot = {
   tick(t, p) {
     const P = p.parts || (p.parts = {
       cols: { us: p.cam.querySelector('.col.us'), fable: p.cam.querySelector('.col.fable') },
+      tracks: {
+        us: p.cam.querySelector('.col.us .track'),
+        fable: p.cam.querySelector('.col.fable .track'),
+      },
+      vals: {
+        us: p.cam.querySelector('.col.us .val'),
+        fable: p.cam.querySelector('.col.fable .val'),
+      },
+      rings: {
+        us: p.cam.querySelector('.col.us .hit-ring'),
+        fable: p.cam.querySelector('.col.fable .hit-ring'),
+      },
+      cap: p.cam.querySelector('.cap'),
+      punchEl: p.cam.querySelector('.ad-punchline'),
       odos: {
         fable: new Odometer(p.cam.querySelector('[data-od="fable"]')),
         us: new Odometer(p.cam.querySelector('[data-od="us"]')),
@@ -102,10 +119,30 @@ export const cheaperSpot = {
     p.cam.style.filter = P.punch > 0.001 ? `blur(${P.punch * 2.2}px)` : 'none'
     P.punch = Math.max(0, P.punch - P.punch * 0.09 - 0.0006)
 
-    // depth of field on the unfocused column + caption
-    p.cam.classList.toggle('focus-fable', shot.focus === 'fable')
-    p.cam.classList.toggle('focus-us', shot.focus === 'us')
-    p.cam.classList.toggle('wide', !shot.focus)
+    // depth of field: blur tweened inline from the last focus change —
+    // the old CSS transitions ran on wall-clock time and desynced the render
+    let focus = null, fAt = -1, prevFocus = null
+    for (let i = 0; i < FOCUS_CHANGES.length; i++) {
+      if (t >= FOCUS_CHANGES[i][0]) {
+        prevFocus = i > 0 ? FOCUS_CHANGES[i - 1][1] : null
+        focus = FOCUS_CHANGES[i][1]; fAt = FOCUS_CHANGES[i][0]
+      }
+    }
+    const dofK = fAt < 0 ? 1 : easeStd(clamp01((t - fAt) / 0.48))
+    const colBlur = (who, f) => (f === null || f === who) ? 0 : 1
+    const capBlur = (f) => (f === null ? 0 : 1)
+    const setDoF = (col, who) => {
+      const b = fAt < 0 ? 0 : colBlur(who, prevFocus) + (colBlur(who, focus) - colBlur(who, prevFocus)) * dofK
+      col.style.filter = b > 0.004 ? `blur(${(7 * b).toFixed(2)}px) brightness(${(1 - 0.45 * b).toFixed(3)})` : 'none'
+      col.style.opacity = String(1 - 0.5 * b)
+    }
+    setDoF(P.cols.us, 'us')
+    setDoF(P.cols.fable, 'fable')
+    const cb = fAt < 0 ? 0 : capBlur(prevFocus) + (capBlur(focus) - capBlur(prevFocus)) * dofK
+    P.cap.style.filter = cb > 0.004 ? `blur(${(2.5 * cb).toFixed(2)}px) brightness(${(1 - 0.3 * cb).toFixed(3)})` : 'none'
+    P.cap.style.opacity = String(1 - 0.45 * cb)
+    // punchline opacity: 1 when wide, 0 when focused — tweened by dofK
+    P.punchEl.style.opacity = String(fAt < 0 ? 1 : (focus === null ? dofK : 1 - dofK))
 
     // fills
     let fableV = 0, usV = 0
@@ -123,19 +160,40 @@ export const cheaperSpot = {
     setBar(P.cols.us, usV / FABLE_MAX)
     p.cam.querySelector('.col.us .bar').style.setProperty('--glow', usV > 0 ? 1 : 0)
 
-    // hits
+    // track draw-in + hit nudge, inline (was a .drawn CSS transition on
+    // wall-clock time — the tracks sat collapsed for ~2s in renders)
+    const drawK = easeOutExpo(clamp01((t - 0.55) / 0.65))
+    for (const who of ['us', 'fable']) {
+      const ht = HITS[who]
+      const nudge = t >= ht && t < ht + 0.48 ? 1 + 0.015 * Math.sin(Math.PI * clamp01((t - ht) / 0.48)) : 1
+      P.tracks[who].style.transform = `scaleY(${(drawK * nudge).toFixed(4)})`
+      const pop = t >= ht && t < ht + 0.48 ? Math.sin(Math.PI * clamp01((t - ht) / 0.48)) : 0
+      if (pop > 0.004) P.vals[who].style.transform = `scale(${(1 + 0.22 * pop).toFixed(3)})`
+      else P.vals[who].style.transform = ''
+    }
+
+    // hits: ring expands on the virtual clock, punch impulse, stage shake
     for (const [who, ht] of Object.entries(HITS)) {
-      const col = P.cols[who]
-      if (t >= ht && t < ht + 0.55 && !col.dataset.hitAt) {
-        col.dataset.hitAt = String(performance.now())
-        col.classList.add('hit')
-        P.punch = 1
-        shake(p)
+      const col = P.cols[who], ring = P.rings[who]
+      const k = clamp01((t - ht) / 0.62)
+      if (t >= ht && k < 1) {
+        const e = easeOutExpo(k)
+        ring.style.opacity = String(0.85 * (1 - e))
+        ring.style.transform = `translate(-50%, 50%) scale(${(0.2 + 1.4 * e).toFixed(3)})`
+        if (!col.dataset.hitAt) { col.dataset.hitAt = '1'; P.punch = 1 }
       } else if (t < ht - 0.05) {
         delete col.dataset.hitAt
-        col.classList.remove('hit')
+        ring.style.opacity = '0'
+        ring.style.transform = 'translate(-50%, 50%) scale(0)'
       }
     }
+    // deterministic stage shake riding the punch decay (was a wall-clock
+    // WAAPI tween — frozen mid-offset frames in renders)
+    const off = P.punch > 0.002
+      ? ` translate(${(5 * P.punch * Math.sin(P.punch * 55)).toFixed(2)}px, ${(-3.5 * P.punch * Math.abs(Math.cos(P.punch * 47))).toFixed(2)}px)`
+      : ''
+    const stageWant = (p.fitTransform || '') + off
+    if (p.stage.style.transform !== stageWant) p.stage.style.transform = stageWant
 
     // punchline + wins card
     // punch rides the pull-back (10.95), finishes ~11.5s, holds ~1.5s
@@ -149,9 +207,9 @@ export const cheaperSpot = {
       P.typer.wins.run(w >= 0.1, 'SUPERBOT WINS', 20, w - 0.1)
     }
 
-    // cut flash + entrance draw
-    p.cam.classList.toggle('drawn', t >= 0.55 && t < CUT_T)
-    const inCut = Math.abs(t - CUT_T) < 0.05
+    // cut flash (held a frame or two past the cut so the first typed
+    // glyphs land inside it — no dead dark frames before the end card)
+    const inCut = Math.abs(t - CUT_T) < 0.07
     p.flash.style.opacity = inCut ? 0.9 : 0
   },
 }
@@ -165,15 +223,6 @@ function centre(el, cam) {
 function setBar(col, frac) {
   const bar = col.querySelector('.bar')
   bar.style.setProperty('--h', (Math.max(0, Math.min(1, frac)) * 100).toFixed(2) + '%')
-}
-
-function shake(p) {
-  p.stage.animate(
-    [{ transform: p.stage.style.transform + ' translate(0,0)' },
-     { transform: p.stage.style.transform + ' translate(4px,-3px)' },
-     { transform: p.stage.style.transform + ' translate(-3px,2px)' },
-     { transform: p.stage.style.transform + ' translate(0,0)' }],
-    { duration: 240, easing: 'ease-out' })
 }
 
 /* page-facing player: same API the site sheet and capture page already use */
