@@ -1,25 +1,37 @@
 ---
-description: Every chat reply that delivers a superbot ad must end with direct, clickable links to view that ad (spot page, live capture, and each mp4)
+description: A superbot ad turn is finished only when the user can click the spot — end every delivering reply with verified, fully-qualified view links
 globs: assets/spots/**, videos/**, *.html
 alwaysApply: false
 ---
 
-# Ad deliverables end with view links
+# An ad is delivered only when the user can click it
 
-A delivered ad is not delivered until the user can click it. Any reply that
-hands over a spot (new, changed, or re-rendered) ENDS with a `Links` block:
+"Committed", "pushed", "rendered locally" are not delivery. Delivery is a
+URL the user opens and watches, verified live before you type it. The Pages
+viewer (`spot.html`) plays the spot's live source, so even a source-only
+edit to `assets/spots/<name>.js` is clickable with no re-render — you never
+have a reason to hand back a spot as a path.
 
-- the spot's page: `https://singularitystudiosdev.github.io/superbot-ads/<spot>.html`
-  (only if a per-spot page exists)
-- the live capture: `https://singularitystudiosdev.github.io/superbot-ads/spot.html?spot=<name>&ratio=16:9`
-- each rendered mp4: `https://singularitystudiosdev.github.io/superbot-ads/videos/<name>-<16x9|1x1|9x16>.mp4`
+Any reply that hands over a spot (new, changed, re-rendered) ENDS with a
+`Links` block — the last thing in the reply, no trailing summary after it:
 
-Full URLs with scheme — bare paths and repo-relative links don't count; the
-user clicks straight into the video. Say in one word what each link is
-(`16:9 render`, `live capture`). Verify with `curl -sI` (HTTP 200) before
-presenting a link as live — a Pages deploy lags the push, so poll until it
-lands rather than linking a 404.
+- one viewer link per ratio you touched or rendered:
+  `https://singularitystudiosdev.github.io/superbot-ads/spot.html?spot=<name>&ratio=<16:9|1:1|9:16>`
+- each mp4 you rendered:
+  `https://singularitystudiosdev.github.io/superbot-ads/videos/<name>-<16x9|1x1|9x16>.mp4`
+- a dedicated page (`board.html`, `said.html`) only if it exists and you
+  changed it — the viewer link already covers every other spot.
 
-Bad:  "the spot is committed and pushed."
+Ratio spelling differs by target: colon in the viewer (`9:16`), x in the
+mp4 filename (`9x16`). Label each link in 2–3 words (`live capture`,
+`16:9 mp4`) and use full URLs with scheme — repo-relative paths and
+`assets/…` file paths don't count; the user is not in your checkout.
+
+Verify before you link: `curl -s -o /dev/null -w '%{http_code}' <url>` must
+print 200. A Pages deploy lags the push by a minute or two — re-run the curl
+until 200 or ~2 minutes; if it still isn't live, say "deploy still landing"
+rather than presenting a 404 as a view link.
+
+Bad:  "board is committed and pushed ✅"
 Good: "view it: [live capture](…/spot.html?spot=board&ratio=16:9) ·
-      [16:9 mp4](…/videos/board-16x9.mp4)"
+      [16:9 mp4](…/videos/board-16x9.mp4) · [9:16 mp4](…/videos/board-9x16.mp4)"
