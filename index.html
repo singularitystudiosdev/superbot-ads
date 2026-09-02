@@ -101,6 +101,9 @@
       pull back → <b>focus pull onto superbot</b> · odometer rolls to $0.92, the green pulse → wide, <b>10.8× cheaper</b> →
       hard cut · <b>SUPERBOT WINS</b>. 15.7 seconds, loops forever.
     </p>
+
+    <h2 class="eyebrow">the series</h2>
+    <div class="grid two" id="series" style="grid-column:1/-1;"></div>
   </main>
 
   <footer class="sb-footer">
@@ -143,6 +146,24 @@
       requestAnimationFrame(tick)
     }
     requestAnimationFrame(tick)
+
+    // the series: one card per registered spot, live from the registry —
+    // dynamic import so an in-progress sibling spot can't break the page
+    import('./assets/spots.js?v=2').then(({ SPOTS }) => {
+      const series = document.getElementById('series')
+      if (series) series.innerHTML = Object.entries(SPOTS).map(([name, spot]) => `
+        <div class="ad-shell">
+          <div class="ad-shell-head">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="title">${name} · <span class="clock">${spot.dur.toFixed(1)}s</span></span>
+            <a href="spot.html?spot=${name}">play ↗</a>
+          </div>
+          <div class="ad-shell-foot">
+            <span class="cap-b">spot.html?spot=${name}&amp;ratio=16:9|1:1|9:16</span>
+            <a href="spot.html?spot=${name}&amp;ratio=9:16">9:16 ↗</a>
+          </div>
+        </div>`).join('')
+    }).catch((e) => console.warn('series registry unavailable:', e.message))
   </script>
 </body>
 </html>

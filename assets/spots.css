@@ -1,0 +1,59 @@
+/* superbot.gg / ads — series spot styles not shared with the chart spot.
+   One block per spot, prefixed by spot (y- = tooling, i- = install). */
+
+/* ---- tooling: the node wiring into every app ---- */
+.ad-mcp { position: absolute; inset: 0; }
+.ad-mcp .m-line { position: absolute; left: 0; right: 0; margin: 0; text-align: center; font: 26px/1.4 var(--font-mono); min-height: 36px; }
+.ad-mcp .m-line.l1 { top: 56px; }
+.ad-mcp .m-line.l2 { top: 118px; color: var(--fg); }
+.ad-mcp .m-line.l2 .type::before { content: '→ '; color: var(--accent); }
+.ad-mcp .l1 .type, .ad-mcp .l2 .type, .y-pay .type { background: color-mix(in srgb, var(--bg) 78%, transparent); padding: 2px 10px; border-radius: 6px; }
+
+.y-node {
+  position: absolute; left: 340px; top: 352px; width: 200px; height: 72px;
+  display: grid; place-items: center; font-weight: 700; font-size: 30px; color: var(--fg);
+  background: var(--card); border: 1px solid var(--accent); border-radius: 12px;
+  box-shadow: 0 0 34px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.y-node .gg { color: var(--accent); }
+.y-trunk {
+  position: absolute; left: 538px; top: 204px; width: 2px; height: 368px;
+  background: var(--accent); transform-origin: 50% 0; transform: scaleY(0);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.y-app { position: absolute; left: 540px; width: 420px; height: 72px; }
+.y-app[data-app='0'] { top: 168px; }
+.y-app[data-app='1'] { top: 352px; }
+.y-app[data-app='2'] { top: 536px; }
+.y-stub {
+  position: absolute; left: 0; top: 35px; width: 140px; height: 2px; background: var(--accent);
+  transform-origin: 0 50%; transform: scaleX(var(--w, 0));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.y-tile {
+  position: absolute; left: 140px; right: 0; top: 0; height: 72px;
+  display: grid; place-items: center; font: 24px/1 var(--font-mono); color: var(--muted);
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  transition: color 300ms var(--ease-out), border-color 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
+}
+.y-app.on .y-tile { color: var(--fg); border-color: var(--accent); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 25%, transparent); }
+.y-pay { position: absolute; left: 0; right: 0; bottom: 44px; margin: 0; text-align: center; font: 700 34px/1.2 var(--font-mono); color: var(--fg); text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent); }
+
+/* other ratios: wire vertically instead */
+.ad-player[data-ratio='1:1'] .y-node, .ad-player[data-ratio='9:16'] .y-node { left: 50%; margin-left: -100px; top: 120px; }
+.ad-player[data-ratio='1:1'] .y-trunk, .ad-player[data-ratio='9:16'] .y-trunk { left: 50%; top: 192px; height: 460px; }
+.ad-player[data-ratio='1:1'] .y-app, .ad-player[data-ratio='9:16'] .y-app { left: 50%; margin-left: -210px; }
+.ad-player[data-ratio='1:1'] .y-app[data-app='0'] { top: 250px; }
+.ad-player[data-ratio='1:1'] .y-app[data-app='1'] { top: 372px; }
+.ad-player[data-ratio='1:1'] .y-app[data-app='2'] { top: 494px; }
+.ad-player[data-ratio='9:16'] .y-app[data-app='0'] { top: 320px; }
+.ad-player[data-ratio='9:16'] .y-app[data-app='1'] { top: 442px; }
+.ad-player[data-ratio='9:16'] .y-app[data-app='2'] { top: 564px; }
+.ad-player[data-ratio='1:1'] .y-trunk, .ad-player[data-ratio='9:16'] .y-trunk { display: none; }
+.ad-player[data-ratio='1:1'] .m-line.l1, .ad-player[data-ratio='9:16'] .m-line.l1 { top: 48px; }
+.ad-player[data-ratio='9:16'] .m-line.l2 { top: 104px; }
+
+/* ---- install: terminal card (reuses .ad-term / .term-line from ad.css) ---- */
+.term-line.cmd { font-size: 19px; color: var(--fg); white-space: nowrap; }
+.i-caret { animation: caret 700ms steps(1) infinite; }
+.term-pay.i-pay { margin-top: 38px; justify-content: center; font: 700 30px/1.3 var(--font-mono); color: var(--fg); text-shadow: 0 0 26px color-mix(in srgb, var(--accent) 40%, transparent); }
